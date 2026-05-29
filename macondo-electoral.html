@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Electoral de Macondo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1008;
+  --parchment: #f5edd8;
+  --parchment-dark: #e8d9b8;
+  --gold: #b5860d;
+  --gold-light: #d4a017;
+  --rust: #8b3a1a;
+  --green-jungle: #1e4a2e;
+  --green-light: #2d6b44;
+  --sepia: #6b4c2a;
+  --sepia-light: #9b7450;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: var(--ink);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999;
+}
+.main-wrapper { max-width: 1200px; margin: 0 auto; padding: 0 12px 60px; }
+
+/* HEADER */
+.header { background: var(--ink); border-bottom: 3px double var(--gold); padding: 28px 24px 20px; text-align: center; }
+.header-ornament { font-size:1.1rem; color:var(--gold); letter-spacing:0.4em; font-family:'IM Fell English',serif; opacity:0.7; margin-bottom:6px; }
+.header h1 { font-family:'IM Fell English',serif; font-size:clamp(1.8rem,4.5vw,3rem); color:var(--parchment); line-height:1.1; font-weight:400; }
+.header h1 em { color:var(--gold-light); font-style:italic; }
+.header-subtitle { font-family:'Cormorant Garamond',serif; font-size:0.95rem; color:var(--sepia-light); letter-spacing:0.15em; text-transform:uppercase; margin-top:8px; font-style:italic; }
+.header-rule { width:160px; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); margin:12px auto 0; }
+.intro-band { background:var(--parchment); border-bottom:2px solid var(--parchment-dark); padding:12px 24px; font-size:0.88rem; color:var(--sepia); font-style:italic; text-align:center; line-height:1.6; }
+
+/* LAYOUT */
+.app-layout { display:grid; grid-template-columns:380px 1fr; gap:0; background:var(--parchment-dark); border:1px solid var(--sepia-light); border-top:none; }
+
+/* LEFT PANEL */
+.left-panel { background:var(--parchment); border-right:2px solid var(--sepia-light); padding:16px 14px; overflow-y:auto; max-height:calc(100vh - 160px); position:sticky; top:0; }
+.panel-section-title { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--sepia-light); margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid var(--parchment-dark); }
+
+/* COMPONENT BLOCKS */
+.component-block { margin-bottom:12px; border:1px solid rgba(107,76,42,0.25); border-radius:4px; background:white; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+.block-header { background:var(--ink); color:var(--parchment); padding:7px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+.block-header:hover { background:#2a1e10; }
+.block-num { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.7rem; background:var(--gold); color:var(--ink); width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.block-title { font-family:'Rajdhani',sans-serif; font-weight:600; font-size:0.78rem; letter-spacing:0.07em; text-transform:uppercase; flex:1; }
+.block-arrow { font-size:0.65rem; color:var(--gold); transition:transform 0.2s; }
+.block-arrow.open { transform:rotate(90deg); }
+.block-body { padding:10px 12px; }
+.block-body.collapsed { display:none; }
+.block-desc { font-size:0.77rem; color:var(--sepia); font-style:italic; margin-bottom:8px; line-height:1.5; border-left:2px solid var(--gold); padding-left:8px; }
+
+/* CIRC TYPE TABS */
+.circ-type-tabs { display:flex; gap:4px; margin-bottom:10px; }
+.circ-tab { flex:1; padding:5px; border:1px solid var(--parchment-dark); border-radius:3px; font-family:'Rajdhani',sans-serif; font-size:0.7rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; background:white; color:var(--sepia); text-align:center; transition:all 0.15s; }
+.circ-tab.active { background:var(--green-jungle); color:white; border-color:var(--green-jungle); }
+.circ-section { display:none; }
+.circ-section.active { display:block; }
+
+/* CIRC ITEM */
+.circ-list { display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
+.circ-item { border:1px solid var(--parchment-dark); border-radius:4px; padding:9px 10px; background:#fafaf5; border-left:3px solid var(--circ-color, var(--sepia-light)); }
+.circ-item-header { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
+.circ-color-swatch { width:12px; height:12px; border-radius:2px; flex-shrink:0; cursor:pointer; border:1px solid rgba(0,0,0,0.1); }
+.circ-name-input { flex:1; border:none; background:transparent; font-family:'Cormorant Garamond',serif; font-size:0.88rem; font-weight:600; color:var(--ink); outline:none; border-bottom:1px dashed var(--parchment-dark); }
+.circ-remove { background:none; border:none; cursor:pointer; color:var(--rust); font-size:0.9rem; padding:0 2px; }
+
+/* CIRC FIELDS ROW */
+.circ-fields { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:7px; }
+.circ-field-label { font-size:0.65rem; color:var(--sepia); margin-bottom:2px; font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; }
+.circ-field-input { width:100%; padding:4px 7px; border:1px solid var(--parchment-dark); border-radius:2px; font-family:'Rajdhani',sans-serif; font-size:0.9rem; font-weight:700; color:var(--ink); background:white; text-align:center; }
+.circ-field-input:focus { outline:none; border-color:var(--gold); }
+
+/* TIPO BADGE inside circ item */
+.tipo-toggle { display:flex; gap:4px; }
+.tipo-btn { flex:1; padding:4px 6px; border:1px solid var(--parchment-dark); border-radius:3px; font-family:'Rajdhani',sans-serif; font-size:0.68rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; background:white; color:var(--sepia); text-align:center; transition:all 0.15s; }
+.tipo-btn.uni.active { background:#1a4a8a; color:white; border-color:#1a4a8a; }
+.tipo-btn.pluri.active { background:var(--green-jungle); color:white; border-color:var(--green-jungle); }
+
+/* Sub-config within circ item (plurinominal only) */
+.pluri-config { margin-top:7px; padding-top:7px; border-top:1px dashed var(--parchment-dark); display:none; }
+.pluri-config.visible { display:block; }
+.mini-select { width:100%; padding:4px 7px; border:1px solid var(--parchment-dark); border-radius:3px; font-family:'Rajdhani',sans-serif; font-size:0.78rem; color:var(--ink); background:white; }
+.mini-select:focus { outline:none; border-color:var(--gold); }
+.mini-label { font-size:0.65rem; color:var(--sepia); font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:3px; margin-top:5px; }
+.mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+
+/* Add circ btn */
+.add-circ-btn { width:100%; padding:6px; border:1px dashed var(--sepia-light); border-radius:3px; background:transparent; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:0.72rem; font-weight:600; color:var(--sepia); letter-spacing:0.08em; text-transform:uppercase; transition:all 0.15s; }
+.add-circ-btn:hover { background:var(--parchment); border-color:var(--gold); color:var(--ink); }
+
+/* ESPECIALES */
+.especial-list { display:flex; flex-direction:column; gap:5px; }
+.esp-item { border:1px solid var(--parchment-dark); border-radius:3px; overflow:hidden; background:#fafaf5; }
+.esp-item-header { display:flex; align-items:center; gap:7px; padding:6px 8px; }
+.esp-item input[type="checkbox"] { accent-color:var(--gold); flex-shrink:0; }
+.esp-item label { flex:1; font-size:0.8rem; cursor:pointer; }
+.esp-curules { width:42px; padding:3px 5px; border:1px solid var(--parchment-dark); border-radius:2px; font-family:'Rajdhani',sans-serif; font-size:0.85rem; font-weight:700; text-align:center; }
+.esp-pluri-config { padding:0 8px 7px; display:none; }
+.esp-pluri-config.visible { display:block; }
+
+/* ÚNICA escaños */
+.unica-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.unica-row label { font-size:0.8rem; color:var(--sepia); flex:1; }
+
+/* TIPO VOTO BLOCK */
+.option-radio { display:flex; flex-direction:column; gap:4px; }
+.opt-label { display:flex; align-items:flex-start; gap:7px; cursor:pointer; padding:5px 7px; border-radius:3px; border:1px solid transparent; transition:all 0.15s; font-size:0.81rem; color:var(--ink); line-height:1.4; }
+.opt-label:hover { background:var(--parchment); border-color:var(--gold); }
+.opt-label.selected { background:#fef9ed; border-color:var(--gold); }
+.opt-label input[type="radio"] { margin-top:2px; accent-color:var(--gold); flex-shrink:0; }
+.opt-text strong { display:block; font-weight:600; color:var(--green-jungle); font-size:0.8rem; }
+.opt-text span { font-size:0.73rem; color:var(--sepia); font-style:italic; }
+
+/* UMBRAL */
+.umbral-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.umbral-row input[type="range"] { flex:1; accent-color:var(--green-jungle); }
+.umbral-val { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1rem; color:var(--green-jungle); min-width:36px; text-align:right; }
+.umbral-note { font-size:0.72rem; color:var(--sepia); font-style:italic; line-height:1.4; }
+
+/* RIGHT PANEL */
+.right-panel { display:flex; flex-direction:column; min-height:600px; }
+
+/* MAP */
+.map-container { position:relative; background:var(--green-jungle); flex-shrink:0; overflow:hidden; border-bottom:2px solid var(--sepia-light); }
+#macondo-svg { width:100%; height:270px; display:block; }
+.map-overlay-info { position:absolute; top:10px; left:12px; background:rgba(10,20,10,0.78); border-radius:4px; padding:8px 12px; max-width:300px; }
+.map-overlay-info h2 { font-family:'IM Fell English',serif; font-size:1.15rem; color:var(--parchment); font-weight:400; }
+.map-overlay-info p { font-size:0.7rem; color:rgba(245,237,216,0.7); font-style:italic; margin-top:2px; }
+.map-legend { position:absolute; bottom:8px; right:8px; background:rgba(10,20,10,0.82); border-radius:4px; padding:7px 9px; max-width:200px; }
+.map-legend-title { font-family:'Rajdhani',sans-serif; font-size:0.62rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:4px; }
+.map-legend-item { display:flex; align-items:center; gap:5px; margin-bottom:3px; font-size:0.68rem; color:rgba(245,237,216,0.85); line-height:1.3; }
+.map-legend-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+.map-legend-badge { font-family:'Rajdhani',sans-serif; font-size:0.58rem; font-weight:700; padding:1px 4px; border-radius:2px; margin-left:3px; }
+.uni-badge { background:#1a4a8a; color:white; }
+.pluri-badge { background:var(--green-jungle); color:white; }
+
+/* VOTE AREA */
+.vote-area { padding:14px 18px; flex:1; overflow-y:auto; background:#f9f3e4; }
+.section-label { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.67rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--sepia-light); margin-bottom:7px; padding-bottom:3px; border-bottom:1px solid var(--parchment-dark); }
+.vote-type-badge { display:inline-flex; align-items:center; gap:5px; font-size:0.76rem; background:var(--parchment-dark); padding:4px 10px; border-radius:3px; margin-bottom:10px; color:var(--sepia); font-style:italic; }
+.circ-tabs-row { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
+.circ-vote-tab { padding:4px 10px; border-radius:3px; border:1px solid var(--parchment-dark); font-family:'Rajdhani',sans-serif; font-size:0.7rem; font-weight:600; cursor:pointer; background:white; color:var(--sepia); transition:all 0.15s; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:5px; }
+.circ-vote-tab.active { color:white; }
+.tab-type-dot { width:7px; height:7px; border-radius:50%; }
+
+/* TABLES */
+.parties-table { width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:12px; }
+.parties-table th { background:var(--ink); color:var(--parchment); padding:6px 9px; text-align:left; font-family:'Rajdhani',sans-serif; font-weight:600; font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; }
+.parties-table td { padding:6px 9px; border-bottom:1px solid var(--parchment-dark); vertical-align:middle; }
+.parties-table tr:nth-child(even) td { background:rgba(0,0,0,0.02); }
+.parties-table tr:hover td { background:#fef7e4; }
+.party-color-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
+.vote-input { width:85px; padding:3px 7px; border:1px solid var(--parchment-dark); border-radius:3px; font-family:'Rajdhani',sans-serif; font-size:0.92rem; font-weight:600; color:var(--ink); background:white; text-align:right; }
+.vote-input:focus { outline:none; border-color:var(--gold); }
+.lista-numerada { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
+.lista-num-cand { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.lista-num-badge { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.7rem; }
+.lista-num-cand input { width:50px; padding:2px 4px; border:1px solid var(--parchment-dark); border-radius:2px; font-family:'Rajdhani',sans-serif; font-size:0.8rem; font-weight:600; text-align:center; background:white; }
+.lista-num-cand input:focus { outline:none; border-color:var(--gold); }
+
+/* CIRC TYPE INDICATOR in vote area */
+.circ-type-indicator { display:inline-flex; align-items:center; gap:6px; font-family:'Rajdhani',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:4px 10px; border-radius:3px; margin-bottom:8px; }
+.circ-type-indicator.uni { background:#e8f0fb; color:#1a4a8a; border:1px solid #b0c4e8; }
+.circ-type-indicator.pluri { background:#e8f5e2; color:var(--green-jungle); border:1px solid #a8d5b0; }
+
+/* SIMULATE */
+.simulate-btn { width:100%; padding:11px; background:var(--green-jungle); color:var(--parchment); border:none; cursor:pointer; font-family:'IM Fell English',serif; font-size:1rem; letter-spacing:0.05em; transition:all 0.2s; border-top:2px solid var(--gold); }
+.simulate-btn:hover { background:var(--green-light); color:var(--gold-light); }
+
+/* RESULTS */
+.results-panel { border-top:2px solid var(--sepia-light); background:var(--parchment); padding:0 18px 20px; display:none; }
+.results-header { font-family:'IM Fell English',serif; font-size:1.2rem; color:var(--ink); padding:12px 0 8px; border-bottom:1px solid var(--parchment-dark); margin-bottom:12px; }
+.results-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:8px; margin-bottom:12px; }
+.result-card { border:1px solid var(--parchment-dark); border-radius:4px; padding:9px 11px; background:white; position:relative; overflow:hidden; }
+.result-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--party-color, var(--ink)); }
+.result-card-name { font-size:0.73rem; font-weight:600; color:var(--sepia); margin-bottom:3px; padding-left:8px; }
+.result-card-escanios { font-family:'Rajdhani',sans-serif; font-size:2rem; font-weight:700; color:var(--ink); line-height:1; padding-left:8px; }
+.result-card-pct { font-size:0.71rem; color:var(--sepia-light); padding-left:8px; }
+.seat-grid { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; padding:10px; background:#f0e8d0; border-radius:4px; border:1px solid var(--parchment-dark); margin-bottom:10px; }
+.seat-dot { width:16px; height:16px; border-radius:50%; cursor:default; transition:transform 0.1s; }
+.seat-dot:hover { transform:scale(1.4); }
+.dhondt-scroll { overflow-x:auto; border:1px solid var(--parchment-dark); border-radius:3px; margin-top:5px; }
+.dhondt-table { border-collapse:collapse; font-size:0.72rem; min-width:100%; }
+.dhondt-table th { background:var(--ink); color:var(--parchment); padding:4px 9px; text-align:center; font-family:'Rajdhani',sans-serif; font-weight:600; font-size:0.67rem; white-space:nowrap; }
+.dhondt-table td { padding:3px 9px; border-bottom:1px solid var(--parchment-dark); text-align:center; white-space:nowrap; }
+.dhondt-table td.winner { font-weight:700; background:#e8f5e2; color:var(--green-jungle); }
+.dhondt-table td.party-col { text-align:left; font-weight:600; }
+.method-label { font-family:'Rajdhani',sans-serif; font-size:0.67rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--sepia-light); margin-bottom:4px; margin-top:10px; }
+.nota-pedagogica { background:#fffbf0; border:1px dashed var(--gold); border-radius:4px; padding:9px 12px; font-size:0.78rem; color:var(--sepia); font-style:italic; margin-top:8px; line-height:1.6; }
+.nota-pedagogica strong { font-style:normal; color:var(--green-jungle); }
+.nota-green { background:#e8f5e2; border-color:var(--green-jungle); }
+.circ-result-block { margin-bottom:10px; padding:9px 12px; border:1px solid var(--parchment-dark); border-radius:4px; background:white; border-left:4px solid var(--circ-color, var(--sepia)); }
+.circ-result-title { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.75rem; letter-spacing:0.07em; text-transform:uppercase; margin-bottom:6px; }
+.winner-chip { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:12px; font-family:'Rajdhani',sans-serif; font-size:0.75rem; font-weight:700; color:white; margin:2px; }
+
+@media(max-width:720px){ .app-layout{grid-template-columns:1fr;} .left-panel{max-height:none;position:static;border-right:none;border-bottom:2px solid var(--sepia-light);} }
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.results-panel{animation:fadeIn 0.35s ease;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-ornament">✦ República Electoral ✦</div>
+  <h1>Sistema Electoral de <em>Macondo</em></h1>
+  <div class="header-subtitle">Laboratorio Interactivo de Sistemas Electorales — Ciencia Política</div>
+  <div class="header-rule"></div>
+</div>
+<div class="intro-band">
+  Macondo celebra sus primeras elecciones. Diseña el sistema electoral desde cero: configura las circunscripciones, su tipo y sus reglas, y simula los resultados con personajes del universo de García Márquez.
+</div>
+
+<div class="main-wrapper">
+<div class="app-layout">
+
+<!-- ══ LEFT PANEL ══ -->
+<div class="left-panel">
+  <div class="panel-section-title">⚙ Diseñador del Sistema Electoral</div>
+
+  <!-- BLOQUE 1: CIRCUNSCRIPCIONES -->
+  <div class="component-block">
+    <div class="block-header" onclick="toggleBlock(1)">
+      <div class="block-num">1</div>
+      <div class="block-title">Circunscripciones</div>
+      <div class="block-arrow open" id="arrow1">▶</div>
+    </div>
+    <div class="block-body" id="body1">
+      <div class="block-desc">Cada circunscripción define su propio tipo (uninominal o plurinominal), escaños y reglas de conversión. Una misma elección puede combinar ambos tipos.</div>
+
+      <div class="circ-type-tabs">
+        <div class="circ-tab active" id="tab-territorial" onclick="switchCircType('territorial')">Territorial</div>
+        <div class="circ-tab" id="tab-especial" onclick="switchCircType('especial')">Especial</div>
+        <div class="circ-tab" id="tab-unica" onclick="switchCircType('unica')">Única</div>
+      </div>
+
+      <!-- TERRITORIAL -->
+      <div class="circ-section active" id="circ-territorial">
+        <div id="circ-list" class="circ-list"></div>
+        <button class="add-circ-btn" onclick="addCirc()">+ Agregar circunscripción</button>
+      </div>
+
+      <!-- ESPECIAL -->
+      <div class="circ-section" id="circ-especial">
+        <div style="font-size:0.76rem;color:var(--sepia);font-style:italic;margin-bottom:8px;">Las circunscripciones especiales pueden coexistir con las territoriales. Cada una puede ser uninominal o plurinominal.</div>
+        <div class="especial-list" id="especial-list"></div>
+      </div>
+
+      <!-- ÚNICA -->
+      <div class="circ-section" id="circ-unica">
+        <div style="font-size:0.76rem;color:var(--sepia);font-style:italic;margin-bottom:8px;">Todo Macondo como un único distrito. Mayor proporcionalidad posible.</div>
+        <div id="unica-config"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOQUE 2: TIPO DE VOTO -->
+  <div class="component-block">
+    <div class="block-header" onclick="toggleBlock(2)">
+      <div class="block-num">2</div>
+      <div class="block-title">Tipo de Voto</div>
+      <div class="block-arrow open" id="arrow2">▶</div>
+    </div>
+    <div class="block-body" id="body2">
+      <div class="block-desc">Las reglas del voto afectan la participación y legitimidad del resultado. El voto obligatorio incrementa la participación entre 10 y 15 puntos porcentuales (Lijphart, 1997).</div>
+      <div class="option-radio">
+        <label class="opt-label selected">
+          <input type="radio" name="tipovoto" value="facultativo" checked onchange="updateVoteInfo(); highlightRadio(this)">
+          <div class="opt-text"><strong>Facultativo (Derecho)</strong><span>Votar es un derecho. El ciudadano decide si participa.</span></div>
+        </label>
+        <label class="opt-label">
+          <input type="radio" name="tipovoto" value="obligatorio" onchange="updateVoteInfo(); highlightRadio(this)">
+          <div class="opt-text"><strong>Obligatorio</strong><span>Todos deben votar. Reduce sesgo socioeconómico en la participación.</span></div>
+        </label>
+        <label class="opt-label">
+          <input type="radio" name="tipovoto" value="electronico" onchange="updateVoteInfo(); highlightRadio(this)">
+          <div class="opt-text"><strong>Electrónico</strong><span>Papeleta digital. Facilita acceso; debate sobre auditoría y confianza.</span></div>
+        </label>
+        <label class="opt-label">
+          <input type="radio" name="tipovoto" value="fisico" onchange="updateVoteInfo(); highlightRadio(this)">
+          <div class="opt-text"><strong>Físico / Tradicional</strong><span>Papeleta en papel. Alta trazabilidad; proceso más lento.</span></div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOQUE 3: UMBRAL GLOBAL -->
+  <div class="component-block">
+    <div class="block-header" onclick="toggleBlock(3)">
+      <div class="block-num">3</div>
+      <div class="block-title">Umbral Electoral</div>
+      <div class="block-arrow open" id="arrow3">▶</div>
+    </div>
+    <div class="block-body" id="body3">
+      <div class="block-desc">Porcentaje mínimo de votos en una circunscripción para participar en el reparto. Aplica a las circunscripciones plurinominales.</div>
+      <div class="umbral-row">
+        <input type="range" id="umbral-slider" min="0" max="20" step="0.5" value="0" oninput="umbral=parseFloat(this.value); document.getElementById('umbral-display').textContent=this.value+'%';">
+        <div class="umbral-val" id="umbral-display">0%</div>
+      </div>
+      <div class="umbral-note">0% = sin umbral · 3% = umbral bajo · 5% = estándar europeo · 10% = umbral alto</div>
+    </div>
+  </div>
+
+</div><!-- end left-panel -->
+
+<!-- ══ RIGHT PANEL ══ -->
+<div class="right-panel">
+
+  <!-- MAPA -->
+  <div class="map-container">
+    <svg id="macondo-svg" viewBox="0 0 700 270" xmlns="http://www.w3.org/2000/svg">
+      <rect width="700" height="270" fill="#152a1a"/>
+      <circle cx="30" cy="50" r="28" fill="#1a3d22" opacity="0.8"/>
+      <circle cx="62" cy="35" r="20" fill="#1e4a28" opacity="0.7"/>
+      <circle cx="638" cy="45" r="25" fill="#1a3d22" opacity="0.8"/>
+      <circle cx="670" cy="62" r="18" fill="#1e4a28" opacity="0.7"/>
+      <circle cx="14" cy="80" r="22" fill="#163218" opacity="0.9"/>
+      <circle cx="685" cy="80" r="20" fill="#163218" opacity="0.9"/>
+      <circle cx="48" cy="215" r="30" fill="#1a3d22" opacity="0.7"/>
+      <circle cx="652" cy="225" r="28" fill="#1a3d22" opacity="0.7"/>
+      <path d="M0,142 Q120,122 250,147 Q380,172 500,152 Q600,137 700,155" stroke="#2a6b8a" stroke-width="20" fill="none" opacity="0.65"/>
+      <path d="M0,142 Q120,122 250,147 Q380,172 500,152 Q600,137 700,155" stroke="#4a9bbe" stroke-width="7" fill="none" opacity="0.4"/>
+      <text x="338" y="86" font-size="11" fill="#f5c518" opacity="0.85">🦋</text>
+      <text x="310" y="73" font-size="8" fill="#f5c518" opacity="0.6">🦋</text>
+      <text x="363" y="68" font-size="8" fill="#f5c518" opacity="0.5">🦋</text>
+      <g opacity="0.55">
+        <rect x="308" y="98" width="82" height="54" rx="3" fill="#8b6914"/>
+        <rect x="323" y="88" width="52" height="13" rx="2" fill="#6b4a10"/>
+        <rect x="350" y="76" width="10" height="18" rx="1" fill="#c4a030"/>
+        <polygon points="348,76 362,76 355,66" fill="#a08020"/>
+        <rect x="238" y="108" width="38" height="30" rx="2" fill="#7a5c12"/>
+        <polygon points="238,108 276,108 257,95" fill="#5a3c08"/>
+        <rect x="406" y="103" width="38" height="30" rx="2" fill="#7a5c12"/>
+        <polygon points="406,103 444,103 425,90" fill="#5a3c08"/>
+      </g>
+      <g id="circ-shapes"></g>
+      <text x="350" y="262" text-anchor="middle" font-family="'IM Fell English',serif" font-size="12" fill="rgba(245,237,216,0.35)" font-style="italic">Macondo</text>
+    </svg>
+    <div class="map-overlay-info">
+      <h2 id="map-title">Macondo</h2>
+      <p id="map-subtitle">Configura las circunscripciones para ver el mapa</p>
+    </div>
+    <div class="map-legend" id="map-legend"></div>
+  </div>
+
+  <!-- VOTACIÓN -->
+  <div class="vote-area">
+    <div id="vote-type-info" class="vote-type-badge">📜 Voto Facultativo · Papeleta física</div>
+    <div id="circ-tabs-row" class="circ-tabs-row"></div>
+    <div id="vote-section-label" class="section-label">Partidos y candidatos</div>
+    <div id="vote-tables-container"></div>
+    <button class="simulate-btn" onclick="simulate()">✦ Simular Elecciones de Macondo ✦</button>
+  </div>
+
+  <div class="results-panel" id="results-panel">
+    <div class="results-header">⚖ Resultados Electorales de Macondo</div>
+    <div id="results-content"></div>
+  </div>
+
+</div><!-- end right-panel -->
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════
+// DATOS
+// ═══════════════════════════════
+const PARTIDOS = [
+  { id:'liberal',     nombre:'Partido Liberal Macondiano',    sigla:'PLM', color:'#c0392b',
+    candidatos:['Cnel. Aureliano Buendía','Úrsula Iguarán','Rebeca Buendía','Amaranta Buendía','José Arcadio Buendía','Remedios la Bella'] },
+  { id:'conservador', nombre:'Partido Conservador de Macondo', sigla:'PCM', color:'#1a4a8a',
+    candidatos:['Don Apolinar Moscote','Pilar Ternera','Gerineldo Márquez','Meme Buendía','Fernanda del Carpio','Aureliano Segundo'] },
+  { id:'indio',       nombre:'Movimiento Guajiro Wayuu',       sigla:'MGW', color:'#8b4513',
+    candidatos:['Visitación','Cataure','Natividad','Márquez'] },
+  { id:'banana',      nombre:'Frente Unido Bananero',          sigla:'FUB', color:'#27ae60',
+    candidatos:['Mauricio Babilonia','J.A. Segundo','Santa Sofía de la Piedad','Petra Cotes'] },
+  { id:'gitano',      nombre:'Colectivo Gitano y Viajeros',    sigla:'CGV', color:'#8e44ad',
+    candidatos:['Melquíades','Francisco el Hombre','Pilar Ternera II'] }
+];
+const DEFAULT_VOTOS = { liberal:3200, conservador:2100, indio:800, banana:1400, gitano:400 };
+const CIRC_COLORS   = ['#e8a020','#3a7ab5','#c0392b','#27ae60','#8e44ad','#16a085','#d35400'];
+
+// ═══════════════════════════════
+// ESTADO
+// ═══════════════════════════════
+let circType = 'territorial';
+let circList = [
+  { id:'centro',  nombre:'Centro',          escanios:3, tipo:'pluri', metodo:'dhondt',    candidatura:'lista_cerrada_bloqueada', color:CIRC_COLORS[0] },
+  { id:'rio',     nombre:'Orilla del Río',  escanios:2, tipo:'pluri', metodo:'dhondt',    candidatura:'lista_cerrada_bloqueada', color:CIRC_COLORS[1] },
+  { id:'cienaga', nombre:'Las Ciénagas',    escanios:1, tipo:'uni',   metodo:'mayoritario', candidatura:'uninominal',            color:CIRC_COLORS[2] }
+];
+const ESPECIALES_BASE = [
+  { id:'wayuu',    label:'Comunidad Wayuu',           escanios:1, tipo:'uni',   metodo:'mayoritario', candidatura:'uninominal', checked:false, color:'#7b3f00' },
+  { id:'afro',     label:'Comunidad Afromacondiana',  escanios:1, tipo:'uni',   metodo:'mayoritario', candidatura:'uninominal', checked:false, color:'#2c1810' },
+  { id:'raizal',   label:'Comunidad Raizal',          escanios:1, tipo:'uni',   metodo:'mayoritario', candidatura:'uninominal', checked:false, color:'#1a5c3a' },
+  { id:'exterior', label:'Macondianos en el Exterior',escanios:1, tipo:'uni',   metodo:'mayoritario', candidatura:'uninominal', checked:false, color:'#2a4a8a' }
+];
+let especiales = ESPECIALES_BASE.map(e=>({...e}));
+let unicaConfig = { escanios:6, tipo:'pluri', metodo:'dhondt', candidatura:'lista_cerrada_bloqueada' };
+let umbral = 0;
+let activeCircTab = null;
+let idCounter = 20;
+
+const METODOS = [
+  { v:'mayoritario', l:'Mayoritario' },
+  { v:'dhondt',      l:"D'Hondt" },
+  { v:'saintelague', l:'Sainte-Laguë' },
+  { v:'hare',        l:'Cuota de Hare' }
+];
+const CANDIDATURAS_PLURI = [
+  { v:'lista_cerrada_bloqueada',    l:'Lista cerrada y bloqueada' },
+  { v:'lista_cerrada_desbloqueada', l:'Lista cerrada desbloqueada' },
+  { v:'lista_abierta',              l:'Lista abierta' }
+];
+
+// ═══════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════
+function toggleBlock(n) {
+  const b = document.getElementById('body'+n);
+  const a = document.getElementById('arrow'+n);
+  b.classList.toggle('collapsed');
+  a.classList.toggle('open');
+}
+function highlightRadio(el) {
+  document.querySelectorAll(`input[name="${el.name}"]`).forEach(r => r.closest('.opt-label').classList.remove('selected'));
+  el.closest('.opt-label').classList.add('selected');
+}
+function switchCircType(t) {
+  circType = t;
+  ['territorial','especial','unica'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('active', x===t);
+    document.getElementById('circ-'+x).classList.toggle('active', x===t);
+  });
+  updateAll();
+}
+
+// ═══════════════════════════════
+// MÉTODOS SELECT HTML
+// ═══════════════════════════════
+function metodosSelectHTML(id, val, onlyProp) {
+  const opts = onlyProp
+    ? METODOS.filter(m => m.v !== 'mayoritario')
+    : METODOS;
+  return `<select class="mini-select" id="${id}" onchange="${id.replace(/-/g,'_')}_change(this.value)">
+    ${opts.map(m=>`<option value="${m.v}" ${m.v===val?'selected':''}>${m.l}</option>`).join('')}
+  </select>`;
+}
+function candidaturasSelectHTML(id, val) {
+  return `<select class="mini-select" id="${id}" onchange="${id.replace(/-/g,'_')}_change(this.value)">
+    ${CANDIDATURAS_PLURI.map(c=>`<option value="${c.v}" ${c.v===val?'selected':''}>${c.l}</option>`).join('')}
+  </select>`;
+}
+
+// ═══════════════════════════════
+// RENDER CIRC LIST
+// ═══════════════════════════════
+function renderCircList() {
+  const cont = document.getElementById('circ-list');
+  cont.innerHTML = '';
+  circList.forEach((c,i) => {
+    const isUni = c.tipo === 'uni';
+    const div = document.createElement('div');
+    div.className = 'circ-item';
+    div.style.setProperty('--circ-color', c.color);
+    div.style.borderLeftColor = c.color;
+    div.innerHTML = `
+      <div class="circ-item-header">
+        <div class="circ-color-swatch" style="background:${c.color}" onclick="cycleColor(${i},'territorial')" title="Cambiar color"></div>
+        <input class="circ-name-input" type="text" value="${c.nombre}" onchange="circList[${i}].nombre=this.value;updateAll()">
+        <button class="circ-remove" onclick="removeCirc(${i})" ${circList.length<=1?'disabled':''}>✕</button>
+      </div>
+      <div class="circ-fields">
+        <div>
+          <div class="circ-field-label">Escaños</div>
+          <input class="circ-field-input" type="number" min="1" max="20" value="${c.escanios}"
+            onchange="circList[${i}].escanios=Math.max(1,parseInt(this.value)||1);
+              if(circList[${i}].escanios===1){circList[${i}].tipo='uni';circList[${i}].metodo='mayoritario';circList[${i}].candidatura='uninominal';}
+              updateAll();">
+        </div>
+        <div>
+          <div class="circ-field-label">Tipo</div>
+          <div class="tipo-toggle">
+            <div class="tipo-btn uni ${isUni?'active':''}" onclick="setTipo(${i},'uni','territorial')">Uninominal</div>
+            <div class="tipo-btn pluri ${!isUni?'active':''}" onclick="setTipo(${i},'pluri','territorial')"
+              ${c.escanios===1?'style="opacity:0.4;pointer-events:none;"':''}>Plurinominal</div>
+          </div>
+        </div>
+      </div>
+      <div class="pluri-config ${!isUni?'visible':''}" id="pluri-${c.id}">
+        <div class="mini-grid">
+          <div>
+            <div class="mini-label">Método</div>
+            <select class="mini-select" onchange="circList[${i}].metodo=this.value;updateAll();">
+              ${METODOS.filter(m=>m.v!=='mayoritario').map(m=>`<option value="${m.v}" ${m.v===c.metodo?'selected':''}>${m.l}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <div class="mini-label">Candidatura</div>
+            <select class="mini-select" onchange="circList[${i}].candidatura=this.value;updateAll();">
+              ${CANDIDATURAS_PLURI.map(k=>`<option value="${k.v}" ${k.v===c.candidatura?'selected':''}>${k.l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>`;
+    cont.appendChild(div);
+  });
+}
+
+function setTipo(i, tipo, scope) {
+  if(scope==='territorial') {
+    if(tipo==='pluri' && circList[i].escanios<2) { circList[i].escanios=2; }
+    circList[i].tipo = tipo;
+    if(tipo==='uni') { circList[i].metodo='mayoritario'; circList[i].candidatura='uninominal'; }
+    else { circList[i].metodo='dhondt'; circList[i].candidatura='lista_cerrada_bloqueada'; }
+  } else {
+    const idx = especiales.findIndex(e=>e.id===i);
+    if(idx<0) return;
+    if(tipo==='pluri' && especiales[idx].escanios<2) especiales[idx].escanios=2;
+    especiales[idx].tipo = tipo;
+    if(tipo==='uni') { especiales[idx].metodo='mayoritario'; especiales[idx].candidatura='uninominal'; }
+    else { especiales[idx].metodo='dhondt'; especiales[idx].candidatura='lista_cerrada_bloqueada'; }
+  }
+  updateAll();
+}
+
+function cycleColor(i, scope) {
+  if(scope==='territorial') {
+    const idx = CIRC_COLORS.indexOf(circList[i].color);
+    circList[i].color = CIRC_COLORS[(idx+1)%CIRC_COLORS.length];
+  }
+  updateAll();
+}
+
+function addCirc() {
+  idCounter++;
+  circList.push({ id:'c'+idCounter, nombre:'Circunscripción '+idCounter, escanios:2, tipo:'pluri', metodo:'dhondt', candidatura:'lista_cerrada_bloqueada', color:CIRC_COLORS[circList.length%CIRC_COLORS.length] });
+  updateAll();
+}
+function removeCirc(i) {
+  if(circList.length<=1) return;
+  circList.splice(i,1);
+  updateAll();
+}
+
+// ═══════════════════════════════
+// RENDER ESPECIALES
+// ═══════════════════════════════
+function renderEspeciales() {
+  const cont = document.getElementById('especial-list');
+  cont.innerHTML = '';
+  especiales.forEach((e,i) => {
+    const isUni = e.tipo==='uni';
+    const div = document.createElement('div');
+    div.className = 'esp-item';
+    div.innerHTML = `
+      <div class="esp-item-header">
+        <input type="checkbox" id="esp-${e.id}" ${e.checked?'checked':''} onchange="especiales[${i}].checked=this.checked;updateAll();">
+        <label for="esp-${e.id}">${e.label}</label>
+        <span style="font-size:0.65rem;color:var(--sepia);font-family:'Rajdhani',sans-serif;font-weight:600;margin-right:3px;">Esc.</span>
+        <input class="esp-curules" type="number" min="1" max="10" value="${e.escanios}"
+          onchange="especiales[${i}].escanios=Math.max(1,parseInt(this.value)||1);
+            if(especiales[${i}].escanios===1){especiales[${i}].tipo='uni';especiales[${i}].metodo='mayoritario';especiales[${i}].candidatura='uninominal';}
+            updateAll();">
+      </div>
+      <div class="esp-pluri-config ${e.checked && !isUni ? 'visible':''}" id="esp-pluri-${e.id}">
+        <div class="tipo-toggle" style="margin-bottom:5px;">
+          <div class="tipo-btn uni ${isUni?'active':''}" onclick="setTipo('${e.id}','uni','especial')">Uninominal</div>
+          <div class="tipo-btn pluri ${!isUni?'active':''}" onclick="setTipo('${e.id}','pluri','especial')"
+            ${e.escanios===1?'style="opacity:0.4;pointer-events:none;"':''}>Plurinominal</div>
+        </div>
+        <div class="mini-grid">
+          <div>
+            <div class="mini-label">Método</div>
+            <select class="mini-select" onchange="especiales[${i}].metodo=this.value;updateAll();">
+              ${METODOS.filter(m=>m.v!=='mayoritario').map(m=>`<option value="${m.v}" ${m.v===e.metodo?'selected':''}>${m.l}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <div class="mini-label">Candidatura</div>
+            <select class="mini-select" onchange="especiales[${i}].candidatura=this.value;updateAll();">
+              ${CANDIDATURAS_PLURI.map(k=>`<option value="${k.v}" ${k.v===e.candidatura?'selected':''}>${k.l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>`;
+    cont.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════
+// RENDER ÚNICA CONFIG
+// ═══════════════════════════════
+function renderUnica() {
+  const cont = document.getElementById('unica-config');
+  const isUni = unicaConfig.tipo==='uni';
+  cont.innerHTML = `
+    <div class="circ-fields" style="margin-bottom:7px;">
+      <div>
+        <div class="circ-field-label">Escaños</div>
+        <input class="circ-field-input" type="number" min="1" max="30" value="${unicaConfig.escanios}"
+          onchange="unicaConfig.escanios=Math.max(1,parseInt(this.value)||1);
+            if(unicaConfig.escanios===1){unicaConfig.tipo='uni';unicaConfig.metodo='mayoritario';unicaConfig.candidatura='uninominal';}
+            updateAll();">
+      </div>
+      <div>
+        <div class="circ-field-label">Tipo</div>
+        <div class="tipo-toggle">
+          <div class="tipo-btn uni ${isUni?'active':''}" onclick="unicaConfig.tipo='uni';unicaConfig.metodo='mayoritario';unicaConfig.candidatura='uninominal';updateAll();">Uninominal</div>
+          <div class="tipo-btn pluri ${!isUni?'active':''}" onclick="unicaConfig.tipo='pluri';unicaConfig.metodo='dhondt';unicaConfig.candidatura='lista_cerrada_bloqueada';updateAll();"
+            ${unicaConfig.escanios===1?'style="opacity:0.4;pointer-events:none;"':''}>Plurinominal</div>
+        </div>
+      </div>
+    </div>
+    ${!isUni ? `<div class="mini-grid">
+      <div>
+        <div class="mini-label">Método</div>
+        <select class="mini-select" onchange="unicaConfig.metodo=this.value;updateAll();">
+          ${METODOS.filter(m=>m.v!=='mayoritario').map(m=>`<option value="${m.v}" ${m.v===unicaConfig.metodo?'selected':''}>${m.l}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div class="mini-label">Candidatura</div>
+        <select class="mini-select" onchange="unicaConfig.candidatura=this.value;updateAll();">
+          ${CANDIDATURAS_PLURI.map(k=>`<option value="${k.v}" ${k.v===unicaConfig.candidatura?'selected':''}>${k.l}</option>`).join('')}
+        </select>
+      </div>
+    </div>` : ''}`;
+}
+
+// ═══════════════════════════════
+// GET ACTIVE CIRCS
+// ═══════════════════════════════
+function getActiveCircs() {
+  if(circType==='unica') {
+    return [{ id:'unica', nombre:'Macondo (Única)', ...unicaConfig }];
+  }
+  if(circType==='territorial') {
+    return circList.map(c=>({...c}));
+  }
+  // especial: territorial + especiales activas
+  const ter = circList.map(c=>({...c}));
+  const esp = especiales.filter(e=>e.checked).map(e=>({...e}));
+  return [...ter, ...esp];
+}
+
+// ═══════════════════════════════
+// MAP
+// ═══════════════════════════════
+function updateMap() {
+  const circs = getActiveCircs();
+  const shapes = document.getElementById('circ-shapes');
+  shapes.innerHTML = '';
+  const legend = document.getElementById('map-legend');
+  document.getElementById('map-title').textContent = 'Macondo';
+
+  const W=700, H=270;
+  const terr = circs.filter(c=>!especiales.find(e=>e.id===c.id));
+  const espec = circs.filter(c=>especiales.find(e=>e.id===c.id));
+
+  // Draw territorial zones
+  if(terr.length>0) {
+    const zW = W/terr.length;
+    terr.forEach((c,i)=>{
+      const x=i*zW+2, y=4, w=zW-4, h=H-8;
+      const cx=x+w/2, cy=H/2;
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x',x); rect.setAttribute('y',y);
+      rect.setAttribute('width',w); rect.setAttribute('height',h);
+      rect.setAttribute('rx','3'); rect.setAttribute('fill',c.color);
+      rect.setAttribute('opacity','0.32');
+      rect.setAttribute('stroke',c.color); rect.setAttribute('stroke-width','2'); rect.setAttribute('stroke-opacity','0.7');
+      g.appendChild(rect);
+      // Label nombre
+      const t1=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t1.setAttribute('x',cx); t1.setAttribute('y',cy-10);
+      t1.setAttribute('text-anchor','middle'); t1.setAttribute('font-family',"'Rajdhani',sans-serif");
+      t1.setAttribute('font-weight','700'); t1.setAttribute('font-size','12'); t1.setAttribute('fill','white');
+      t1.textContent=c.nombre;
+      g.appendChild(t1);
+      // Escaños
+      const t2=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t2.setAttribute('x',cx); t2.setAttribute('y',cy+5);
+      t2.setAttribute('text-anchor','middle'); t2.setAttribute('font-family',"'Rajdhani',sans-serif");
+      t2.setAttribute('font-size','10'); t2.setAttribute('fill','rgba(255,255,255,0.9)');
+      t2.textContent=`${c.escanios} esc.`;
+      g.appendChild(t2);
+      // Tipo badge
+      const t3=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t3.setAttribute('x',cx); t3.setAttribute('y',cy+20);
+      t3.setAttribute('text-anchor','middle'); t3.setAttribute('font-family',"'Rajdhani',sans-serif");
+      t3.setAttribute('font-size','9'); t3.setAttribute('fill', c.tipo==='uni'?'#aac4f5':'#a5d6b0');
+      t3.textContent=c.tipo==='uni'?'UNINOMINAL':'PLURINOMINAL';
+      g.appendChild(t3);
+      shapes.appendChild(g);
+    });
+  }
+
+  // Especiales como banners en la parte superior
+  espec.forEach((e,i)=>{
+    const bx=10+i*170, by=8;
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',bx); rect.setAttribute('y',by);
+    rect.setAttribute('width','162'); rect.setAttribute('height','22');
+    rect.setAttribute('rx','3'); rect.setAttribute('fill',e.color); rect.setAttribute('opacity','0.88');
+    g.appendChild(rect);
+    const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',bx+81); txt.setAttribute('y',by+15);
+    txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-family',"'Rajdhani',sans-serif");
+    txt.setAttribute('font-weight','600'); txt.setAttribute('font-size','9'); txt.setAttribute('fill','white');
+    txt.textContent=`${e.nombre||e.label} · ${e.escanios} esc. · ${e.tipo==='uni'?'UNI':'PLURI'}`;
+    g.appendChild(txt);
+    shapes.appendChild(g);
+  });
+
+  // Legend
+  let lhtml = '<div class="map-legend-title">Circunscripciones</div>';
+  circs.forEach(c=>{
+    lhtml+=`<div class="map-legend-item">
+      <div class="map-legend-dot" style="background:${c.color}"></div>
+      <span>${c.nombre||c.label}: ${c.escanios} esc.</span>
+      <span class="map-legend-badge ${c.tipo==='uni'?'uni-badge':'pluri-badge'}">${c.tipo==='uni'?'UNI':'PLURI'}</span>
+    </div>`;
+  });
+  legend.innerHTML = lhtml;
+
+  const totalEsc = circs.reduce((s,c)=>s+c.escanios,0);
+  document.getElementById('map-subtitle').textContent = `${circs.length} circunscripción${circs.length>1?'es':''} · ${totalEsc} escaños en total`;
+}
+
+// ═══════════════════════════════
+// VOTE TABLES
+// ═══════════════════════════════
+function renderVoteTables() {
+  const circs = getActiveCircs();
+  const tabsRow = document.getElementById('circ-tabs-row');
+  const container = document.getElementById('vote-tables-container');
+  const secLabel = document.getElementById('vote-section-label');
+
+  if(!activeCircTab || !circs.find(c=>c.id===activeCircTab)) activeCircTab = circs[0]?.id;
+
+  // Tabs
+  tabsRow.innerHTML = circs.map(c=>{
+    const isActive = c.id===activeCircTab;
+    const isUni = c.tipo==='uni';
+    return `<div class="circ-vote-tab ${isActive?'active':''}"
+      style="${isActive?`background:${c.color};border-color:${c.color};color:white`:''}"
+      onclick="activeCircTab='${c.id}';renderVoteTables();">
+      <div class="tab-type-dot" style="background:${isActive?'rgba(255,255,255,0.6)':c.color}"></div>
+      ${c.nombre||c.label} (${c.escanios})
+    </div>`;
+  }).join('');
+
+  const ac = circs.find(c=>c.id===activeCircTab) || circs[0];
+  if(!ac) return;
+
+  const isUni = ac.tipo==='uni';
+  secLabel.textContent = `Votación: ${ac.nombre||ac.label} — ${ac.escanios} escaño${ac.escanios>1?'s':''}`;
+
+  // Type indicator
+  let html = `<div class="circ-type-indicator ${isUni?'uni':'pluri'}">
+    ${isUni
+      ? '🔵 Uninominal · Sistema Mayoritario · Candidatura personal'
+      : `🟢 Plurinominal · ${METODOS.find(m=>m.v===ac.metodo)?.l||''} · ${CANDIDATURAS_PLURI.find(k=>k.v===ac.candidatura)?.l||''}`
+    }
+  </div>`;
+
+  html += buildVoteTable(ac);
+  container.innerHTML = html;
+}
+
+function buildVoteTable(circ) {
+  const isUni = circ.tipo==='uni';
+  const cand = isUni ? 'uninominal' : circ.candidatura;
+  const esc = circ.escanios;
+
+  let thead = '';
+  if(isUni) thead = '<th>Candidato / Partido</th><th>Sigla</th><th>Votos</th>';
+  else if(cand==='lista_cerrada_bloqueada') thead = '<th>Partido (Lista)</th><th>Posiciones en lista</th><th>Votos al partido</th>';
+  else if(cand==='lista_cerrada_desbloqueada') thead = '<th>Partido</th><th>Votos al partido</th><th>Voto preferente (posición)</th>';
+  else thead = `<th>Partido</th><th colspan="2">Votos por posición (lista abierta)</th>`;
+
+  let rows = '';
+  PARTIDOS.forEach(p=>{
+    const vkey = `${p.id}_${circ.id}`;
+    const defV = DEFAULT_VOTOS[p.id]||500;
+    if(isUni) {
+      rows += `<tr>
+        <td><span class="party-color-dot" style="background:${p.color}"></span><strong>${p.candidatos[0]}</strong><br><small style="color:var(--sepia);font-size:0.7rem">${p.nombre}</small></td>
+        <td style="font-size:0.75rem;color:var(--sepia)">${p.sigla}</td>
+        <td><input class="vote-input" type="number" min="0" value="${defV}" id="v_${vkey}_total"></td>
+      </tr>`;
+    } else if(cand==='lista_cerrada_bloqueada') {
+      const badges = Array.from({length:Math.min(esc,p.candidatos.length)},(_,i)=>
+        `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${p.color};color:white;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.7rem;margin:1px;">${i+1}</span>`
+      ).join('');
+      rows += `<tr>
+        <td><span class="party-color-dot" style="background:${p.color}"></span><strong>${p.nombre}</strong></td>
+        <td><div style="display:flex;flex-wrap:wrap;gap:2px;">${badges}</div><div style="font-size:0.67rem;color:var(--sepia);font-style:italic;margin-top:2px">Orden definido por el partido</div></td>
+        <td><input class="vote-input" type="number" min="0" value="${defV}" id="v_${vkey}_total"></td>
+      </tr>`;
+    } else if(cand==='lista_cerrada_desbloqueada') {
+      const pInputs = Array.from({length:Math.min(esc,4)},(_,i)=>
+        `<div class="lista-num-cand">
+          <div class="lista-num-badge" style="background:${p.color};color:white;">${i+1}</div>
+          <input type="number" min="0" value="0" id="v_${vkey}_pref_${i}">
+        </div>`).join('');
+      rows += `<tr>
+        <td><span class="party-color-dot" style="background:${p.color}"></span><strong>${p.nombre}</strong></td>
+        <td><input class="vote-input" type="number" min="0" value="${defV}" id="v_${vkey}_total"></td>
+        <td><div class="lista-numerada">${pInputs}</div></td>
+      </tr>`;
+    } else {
+      const posInputs = Array.from({length:Math.min(esc,p.candidatos.length)},(_,i)=>
+        `<div class="lista-num-cand">
+          <div class="lista-num-badge" style="background:${p.color};color:white;">${i+1}</div>
+          <input type="number" min="0" value="${i===0?Math.floor(defV/3):0}" id="v_${vkey}_pos_${i}">
+        </div>`).join('');
+      rows += `<tr>
+        <td><span class="party-color-dot" style="background:${p.color}"></span><strong>${p.sigla}</strong><br><small style="color:var(--sepia);font-size:0.7rem">${p.nombre}</small></td>
+        <td colspan="2"><div class="lista-numerada">${posInputs}</div></td>
+      </tr>`;
+    }
+  });
+
+  return `<table class="parties-table"><thead><tr>${thead}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ═══════════════════════════════
+// VOTE INFO
+// ═══════════════════════════════
+const VOTE_LABELS = {
+  facultativo:'📜 Voto Facultativo — Derecho ciudadano, no obligatorio',
+  obligatorio:'⚠️ Voto Obligatorio — Todos los macondianos deben votar (+10–15 pp participación)',
+  electronico:'💻 Voto Electrónico — Registro digital · Debate sobre auditoría y confianza',
+  fisico:'🗳 Voto Físico — Papeleta tradicional · Alta trazabilidad'
+};
+function updateVoteInfo() {
+  const v = document.querySelector('input[name="tipovoto"]:checked')?.value||'facultativo';
+  document.getElementById('vote-type-info').textContent = VOTE_LABELS[v];
+}
+
+// ═══════════════════════════════
+// UPDATE ALL
+// ═══════════════════════════════
+function updateAll() {
+  renderCircList();
+  renderEspeciales();
+  renderUnica();
+  updateMap();
+  renderVoteTables();
+}
+
+// ═══════════════════════════════
+// COLLECT VOTES
+// ═══════════════════════════════
+function collectVotes(circ) {
+  const isUni = circ.tipo==='uni';
+  const cand = isUni ? 'uninominal' : circ.candidatura;
+  return PARTIDOS.map(p=>{
+    const vkey=`${p.id}_${circ.id}`;
+    let v=0;
+    if(cand==='uninominal'||cand==='lista_cerrada_bloqueada'||cand==='lista_cerrada_desbloqueada'){
+      v = parseInt(document.getElementById(`v_${vkey}_total`)?.value)||DEFAULT_VOTOS[p.id]||0;
+    } else {
+      let i=0, s=0;
+      while(true){ const el=document.getElementById(`v_${vkey}_pos_${i}`); if(!el)break; s+=parseInt(el.value)||0; i++; }
+      v=s;
+    }
+    return {...p, votosActuales:v};
+  });
+}
+
+// ═══════════════════════════════
+// SIMULATE
+// ═══════════════════════════════
+function simulate() {
+  const circs = getActiveCircs();
+  const allResults = circs.map(circ=>{
+    const isActive = circ.id===activeCircTab;
+    const parties = isActive ? collectVotes(circ) : PARTIDOS.map(p=>({...p,votosActuales:DEFAULT_VOTOS[p.id]||0}));
+    const total = parties.reduce((s,p)=>s+p.votosActuales,0);
+    const umbralAbs = (umbral/100)*total;
+    const enriched = parties.map(p=>({...p, pct:total>0?p.votosActuales/total*100:0, superaUmbral:p.votosActuales>=umbralAbs}));
+    const aptos = enriched.filter(p=>p.superaUmbral&&p.votosActuales>0);
+    const excluidos = enriched.filter(p=>!p.superaUmbral||p.votosActuales===0);
+
+    let resultado, methodTable=null;
+    if(circ.tipo==='uni'||circ.metodo==='mayoritario') {
+      const winner=[...aptos].sort((a,b)=>b.votosActuales-a.votosActuales)[0];
+      resultado=enriched.map(p=>({...p,escanios:winner&&p.id===winner.id?circ.escanios:0}));
+    } else if(circ.metodo==='dhondt') {
+      const r=dhondt(aptos,circ.escanios);
+      resultado=[...r.resultado,...excluidos.map(p=>({...p,escanios:0}))];
+      methodTable={type:'dhondt',data:r.tabla};
+    } else if(circ.metodo==='saintelague') {
+      const r=saintelague(aptos,circ.escanios);
+      resultado=[...r.resultado,...excluidos.map(p=>({...p,escanios:0}))];
+      methodTable={type:'saintelague',data:r.tabla};
+    } else {
+      const r=hare(aptos,circ.escanios);
+      resultado=[...r.resultado,...excluidos.map(p=>({...p,escanios:0}))];
+      methodTable={type:'hare',data:r.tabla};
+    }
+    return {circ, resultado, methodTable, excluidos, totalVotos:total};
+  });
+  renderResults(allResults);
+}
+
+// ═══════════════════════════════
+// D'HONDT
+// ═══════════════════════════════
+function dhondt(partidos, n) {
+  const conteo=partidos.map(p=>({...p,escanios:0}));
+  const allQ=[];
+  conteo.forEach(p=>{ for(let d=1;d<=n;d++) allQ.push({partido:p,cociente:p.votosActuales/d,divisor:d}); });
+  allQ.sort((a,b)=>b.cociente-a.cociente);
+  const winners=allQ.slice(0,n);
+  winners.forEach(q=>{ const p=conteo.find(x=>x.id===q.partido.id); if(p)p.escanios++; });
+  const divisores=Array.from({length:n},(_,i)=>i+1);
+  const tabla={divisores,partidos:conteo.map(p=>({...p,cocientes:divisores.map(d=>({val:Math.round(p.votosActuales/d),isWinner:winners.some(w=>w.partido.id===p.id&&w.divisor===d)}))}))};
+  return {resultado:conteo,tabla};
+}
+
+// ═══════════════════════════════
+// SAINTE-LAGUË
+// ═══════════════════════════════
+function saintelague(partidos, n) {
+  const conteo=partidos.map(p=>({...p,escanios:0}));
+  const divisores=Array.from({length:n},(_,i)=>1+i*2);
+  const allQ=[];
+  conteo.forEach(p=>{ divisores.forEach(d=>allQ.push({partido:p,cociente:p.votosActuales/d,divisor:d})); });
+  allQ.sort((a,b)=>b.cociente-a.cociente);
+  const winners=allQ.slice(0,n);
+  winners.forEach(q=>{ const p=conteo.find(x=>x.id===q.partido.id); if(p)p.escanios++; });
+  const tabla={divisores,partidos:conteo.map(p=>({...p,cocientes:divisores.map(d=>({val:Math.round(p.votosActuales/d),isWinner:winners.some(w=>w.partido.id===p.id&&w.divisor===d)}))}))};
+  return {resultado:conteo,tabla};
+}
+
+// ═══════════════════════════════
+// HARE
+// ═══════════════════════════════
+function hare(partidos, n) {
+  const total=partidos.reduce((s,p)=>s+p.votosActuales,0);
+  const cuota=total/n;
+  let conteo=partidos.map(p=>{ const exact=p.votosActuales/cuota; return {...p,exact,escanios:Math.floor(exact),resto:exact-Math.floor(exact)}; });
+  const asignados=conteo.reduce((s,p)=>s+p.escanios,0);
+  [...conteo].sort((a,b)=>b.resto-a.resto).slice(0,n-asignados).forEach(x=>{ const p=conteo.find(p=>p.id===x.id); if(p){p.escanios++;p.gotBonus=true;} });
+  return {resultado:conteo,tabla:{cuota:cuota.toFixed(1),partidos:conteo}};
+}
+
+// ═══════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════
+function renderResults(allResults) {
+  const panel=document.getElementById('results-panel');
+  const content=document.getElementById('results-content');
+  panel.style.display='block';
+
+  // Aggregate
+  const totales={};
+  PARTIDOS.forEach(p=>{ totales[p.id]={...p,escanios:0,votosTotal:0}; });
+  allResults.forEach(({resultado})=>resultado.forEach(p=>{ if(totales[p.id]){totales[p.id].escanios+=p.escanios||0; totales[p.id].votosTotal+=p.votosActuales||0;} }));
+  const totalEsc=Object.values(totales).reduce((s,p)=>s+p.escanios,0);
+  const totalVotG=allResults.reduce((s,r)=>s+r.totalVotos,0);
+
+  let html='';
+
+  // Cards
+  html+='<div class="results-grid">';
+  Object.values(totales).filter(p=>p.escanios>0).sort((a,b)=>b.escanios-a.escanios).forEach(p=>{
+    const pct=totalVotG>0?(p.votosTotal/totalVotG*100).toFixed(1):'—';
+    const ep=totalEsc>0?Math.round(p.escanios/totalEsc*100):0;
+    html+=`<div class="result-card" style="--party-color:${p.color}">
+      <div class="result-card-name">${p.nombre}</div>
+      <div class="result-card-escanios">${p.escanios}</div>
+      <div class="result-card-pct">${pct}% votos · ${ep}% escaños</div>
+    </div>`;
+  });
+  html+='</div>';
+
+  // Parliament
+  html+=`<div style="text-align:center;font-size:0.72rem;color:var(--sepia);font-style:italic;margin-bottom:6px;">Consejo Municipal de Macondo — ${totalEsc} escaños</div><div class="seat-grid">`;
+  Object.values(totales).filter(p=>p.escanios>0).sort((a,b)=>b.escanios-a.escanios).forEach(p=>{
+    for(let i=0;i<p.escanios;i++) html+=`<div class="seat-dot" style="background:${p.color}" title="${p.nombre}: ${p.escanios}"></div>`;
+  });
+  html+='</div>';
+
+  // Per-circ breakdown
+  html+='<div class="method-label" style="margin-top:12px;">Resultados por circunscripción</div>';
+  allResults.forEach(({circ,resultado,methodTable,excluidos,totalVotos})=>{
+    const ganadores=resultado.filter(p=>p.escanios>0).sort((a,b)=>b.escanios-a.escanios);
+    const isUni=circ.tipo==='uni';
+    html+=`<div class="circ-result-block" style="--circ-color:${circ.color};border-left-color:${circ.color}">
+      <div class="circ-result-title" style="color:${circ.color}">
+        ${circ.nombre||circ.label}
+        <span class="map-legend-badge ${isUni?'uni-badge':'pluri-badge'}" style="font-size:0.65rem">${isUni?'UNINOMINAL':'PLURINOMINAL'}</span>
+        · ${circ.escanios} escaño${circ.escanios>1?'s':''}
+        ${!isUni?`· ${METODOS.find(m=>m.v===circ.metodo)?.l||''}`:''} 
+      </div>
+      <div>${ganadores.map(p=>`<span class="winner-chip" style="background:${p.color}">${p.sigla}: ${p.escanios}</span>`).join('')}</div>`;
+
+    // Umbral note per circ
+    if(umbral>0 && excluidos.filter(p=>p.votosActuales>0).length>0) {
+      html+=`<div style="font-size:0.73rem;color:var(--rust);font-style:italic;margin-top:4px">
+        ⚠️ Excluidos por umbral (${umbral}%): ${excluidos.filter(p=>p.votosActuales>0).map(p=>p.sigla).join(', ')}
+      </div>`;
+    }
+
+    // Method table (only for proporcional circs)
+    if(methodTable) {
+      const mt=methodTable;
+      if(mt.type==='dhondt'||mt.type==='saintelague'){
+        const lbl=mt.type==='dhondt'?"D'Hondt (÷ 1, 2, 3…)":"Sainte-Laguë (÷ 1, 3, 5…)";
+        html+=`<div style="font-family:'Rajdhani',sans-serif;font-size:0.64rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--sepia-light);margin-top:8px;margin-bottom:3px;">${lbl}</div>
+          <div class="dhondt-scroll"><table class="dhondt-table">
+            <thead><tr><th>÷</th>${mt.data.partidos.map(p=>`<th style="color:${p.color}">${p.sigla}</th>`).join('')}</tr></thead>
+            <tbody>`;
+        mt.data.divisores.forEach((div,i)=>{
+          html+=`<tr><td style="font-family:'Rajdhani',sans-serif;font-weight:700">${div}</td>`;
+          mt.data.partidos.forEach(p=>{ const c=p.cocientes[i]; html+=`<td class="${c.isWinner?'winner':''}">${c.val.toLocaleString('es-CO')}</td>`; });
+          html+='</tr>';
+        });
+        html+='</tbody></table></div>';
+      } else if(mt.type==='hare'){
+        html+=`<div style="font-family:'Rajdhani',sans-serif;font-size:0.64rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--sepia-light);margin-top:8px;margin-bottom:3px;">Cuota de Hare = ${mt.data.cuota} votos/escaño</div>
+          <div class="dhondt-scroll"><table class="dhondt-table">
+            <thead><tr><th>Partido</th><th>Votos</th><th>÷ Cuota</th><th>Ent.</th><th>Resto</th><th>Bonus</th><th>Total</th></tr></thead><tbody>`;
+        mt.data.partidos.forEach(p=>{
+          html+=`<tr><td class="party-col" style="color:${p.color}">${p.sigla}</td>
+            <td>${p.votosActuales.toLocaleString('es-CO')}</td>
+            <td>${(p.exact||0).toFixed(3)}</td>
+            <td>${p.escanios-(p.gotBonus?1:0)}</td>
+            <td>${(p.resto||0).toFixed(3)}</td>
+            <td>${p.gotBonus?'✓':' —'}</td>
+            <td class="${p.escanios>0?'winner':''}">${p.escanios}</td></tr>`;
+        });
+        html+='</tbody></table></div>';
+      }
+    }
+    html+='</div>';
+  });
+
+  // Nota pedagógica final
+  const tiposMix = [...new Set(allResults.map(r=>r.circ.tipo))];
+  const metodosMix = [...new Set(allResults.filter(r=>r.circ.tipo==='pluri').map(r=>r.circ.metodo))];
+  if(tiposMix.length>1) {
+    html+=`<div class="nota-pedagogica nota-green" style="margin-top:12px;">📚 <strong>Sistema mixto:</strong> Esta elección combina circunscripciones uninominales (mayoritario + candidatura personal) con plurinominales (representación proporcional + listas). Es el principio detrás de sistemas como el alemán personalizado, el japonés paralelo o el colombiano con circunscripciones especiales.</div>`;
+  } else if(metodosMix.length>1) {
+    html+=`<div class="nota-pedagogica" style="margin-top:12px;">📚 <strong>Métodos mixtos:</strong> Distintas circunscripciones usan distintos métodos proporcionales. Observa cómo D'Hondt y Sainte-Laguë producen distribuciones diferentes con los mismos votos.</div>`;
+  }
+
+  content.innerHTML=html;
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ═══════════════════════════════
+// INIT
+// ═══════════════════════════════
+document.addEventListener('DOMContentLoaded', ()=>{ updateAll(); updateVoteInfo(); });
+</script>
+</body>
+</html>
