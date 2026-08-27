@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Electoral de Macondo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:     #1a1008;
+  --parch:   #f5edd8;
+  --parch2:  #ede0c4;
+  --gold:    #b5860d;
+  --gold2:   #d4a017;
+  --sepia:   #6b4c2a;
+  --sep2:    #9b7450;
+  --green:   #1e4a2e;
+  --green2:  #2d6b44;
+  --rust:    #8b3a1a;
+  --slate:   #1e3a52;   /* color panel resultados */
+  --slate2:  #2a5070;
+  --hh: 46px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Cormorant Garamond',Georgia,serif;background:var(--ink);color:var(--ink)}
+
+/* ── HEADER ── */
+.hdr{
+  height:var(--hh);background:var(--ink);border-bottom:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0;
+}
+.hdr-title{font-family:'IM Fell English',serif;font-size:1.2rem;color:var(--parch);font-weight:400}
+.hdr-title em{color:var(--gold2)}
+.hdr-sub{font-family:'Rajdhani',sans-serif;font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--sep2)}
+.hdr-orn{font-size:0.8rem;color:var(--gold);opacity:0.55;letter-spacing:0.3em}
+
+/* ── WORKSPACE: 3 columns ── */
+.ws{
+  display:grid;
+  grid-template-columns:290px 1fr 340px;
+  height:calc(100vh - var(--hh));
+  overflow:hidden;
+}
+
+/* ══ COL LEFT: DISEÑADOR ══ */
+.col-l{
+  background:var(--parch);border-right:2px solid var(--sep2);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.col-cap{
+  background:var(--ink);color:var(--gold);
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.58rem;
+  letter-spacing:0.18em;text-transform:uppercase;
+  padding:5px 12px;flex-shrink:0;border-bottom:1px solid rgba(181,134,13,0.25);
+}
+.col-scroll{flex:1;overflow-y:auto;padding:10px 10px 20px}
+.col-scroll::-webkit-scrollbar{width:3px}
+.col-scroll::-webkit-scrollbar-thumb{background:var(--sep2);border-radius:2px}
+
+/* ── STEP BLOCKS ── */
+.step{margin-bottom:10px;border:1px solid rgba(107,76,42,0.2);border-radius:4px;background:white;overflow:hidden}
+.step-hdr{
+  background:var(--ink);color:var(--parch);padding:7px 11px;
+  display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+}
+.step-hdr:hover{background:#2a1e10}
+.snum{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.65rem;
+  background:var(--gold);color:var(--ink);width:17px;height:17px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.stitle{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.74rem;letter-spacing:0.06em;text-transform:uppercase;flex:1}
+.sarr{font-size:0.6rem;color:var(--gold);transition:transform 0.2s}
+.sarr.open{transform:rotate(90deg)}
+.step-body{padding:9px 11px}
+.step-body.col{display:none}
+.sdesc{font-size:0.72rem;color:var(--sepia);font-style:italic;margin-bottom:8px;line-height:1.45;border-left:2px solid var(--gold);padding-left:7px}
+
+/* radio pills */
+.pills{display:flex;flex-direction:column;gap:4px}
+.pill{
+  display:flex;align-items:flex-start;gap:7px;cursor:pointer;
+  padding:5px 7px;border-radius:3px;border:1px solid transparent;
+  font-size:0.75rem;color:var(--ink);line-height:1.35;transition:all 0.12s;
+}
+.pill:hover{background:var(--parch);border-color:var(--gold)}
+.pill.on{background:#fef9ed;border-color:var(--gold)}
+.pill input[type=radio]{margin-top:2px;accent-color:var(--gold);flex-shrink:0}
+.pill strong{display:block;font-weight:600;color:var(--green);font-size:0.74rem}
+.pill span{font-size:0.67rem;color:var(--sepia);font-style:italic}
+
+/* CIRC BUILDER */
+.ctabs{display:flex;gap:3px;margin-bottom:8px}
+.ctab{
+  flex:1;padding:4px;border:1px solid var(--parch2);border-radius:2px;
+  font-family:'Rajdhani',sans-serif;font-size:0.65rem;font-weight:600;
+  letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;
+  background:white;color:var(--sepia);text-align:center;
+}
+.ctab.on{background:var(--green);color:white;border-color:var(--green)}
+.csec{display:none}.csec.on{display:block}
+
+.circ-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.ci{border:1px solid var(--parch2);border-radius:3px;padding:7px 8px;background:#fafaf5;border-left:3px solid}
+.ci-top{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.ci-sw{width:11px;height:11px;border-radius:2px;cursor:pointer;flex-shrink:0;border:1px solid rgba(0,0,0,0.12)}
+.ci-nm{flex:1;border:none;background:transparent;font-family:'Cormorant Garamond',serif;font-size:0.82rem;font-weight:600;color:var(--ink);outline:none;border-bottom:1px dashed var(--parch2);min-width:0}
+.ci-rm{background:none;border:none;cursor:pointer;color:var(--rust);font-size:0.85rem;padding:0 2px}
+.ci-row{display:grid;grid-template-columns:60px 1fr;gap:5px;margin-bottom:5px;align-items:end}
+.fl{font-size:0.6rem;color:var(--sepia);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:2px}
+.fi{width:100%;padding:3px 5px;border:1px solid var(--parch2);border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:700;color:var(--ink);background:white;text-align:center}
+.fi:focus{outline:none;border-color:var(--gold)}
+.ttog{display:flex;gap:3px}
+.tb{flex:1;padding:3px 3px;border:1px solid var(--parch2);border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;background:white;color:var(--sepia);text-align:center}
+.tb.uni.on{background:#1a4a8a;color:white;border-color:#1a4a8a}
+.tb.pluri.on{background:var(--green);color:white;border-color:var(--green)}
+.pcfg{margin-top:5px;padding-top:5px;border-top:1px dashed var(--parch2);display:none}
+.pcfg.vis{display:block}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.ms{width:100%;padding:3px 5px;border:1px solid var(--parch2);border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:0.72rem;color:var(--ink);background:white}
+.ms:focus{outline:none;border-color:var(--gold)}
+.ml{font-size:0.6rem;color:var(--sepia);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:2px;margin-top:3px}
+.add-btn{width:100%;padding:5px;border:1px dashed var(--sep2);border-radius:2px;background:transparent;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:0.67rem;font-weight:600;color:var(--sepia);letter-spacing:0.07em;text-transform:uppercase}
+.add-btn:hover{background:var(--parch);border-color:var(--gold)}
+
+/* ESPECIALES */
+.esp-list{display:flex;flex-direction:column;gap:4px}
+.esp{border:1px solid var(--parch2);border-radius:2px;background:#fafaf5;overflow:hidden}
+.esp-hdr{display:flex;align-items:center;gap:6px;padding:5px 7px;font-size:0.74rem}
+.esp-hdr input[type=checkbox]{accent-color:var(--gold)}
+.esp-hdr label{flex:1;cursor:pointer}
+.esp-n{width:36px;padding:2px 4px;border:1px solid var(--parch2);border-radius:2px;font-family:'Rajdhani',sans-serif;font-size:0.82rem;font-weight:700;text-align:center}
+.esp-cfg{padding:0 7px 6px;display:none}
+.esp-cfg.vis{display:block}
+
+/* ÚNICA */
+.urow{display:grid;grid-template-columns:60px 1fr;gap:5px;margin-bottom:5px;align-items:end}
+
+/* UMBRAL */
+.ubrow{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.ubrow input[type=range]{flex:1;accent-color:var(--green)}
+.ubval{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.95rem;color:var(--green);min-width:30px;text-align:right}
+.unote{font-size:0.67rem;color:var(--sepia);font-style:italic;line-height:1.4}
+
+/* SIM BUTTON */
+.sim-btn{
+  width:100%;padding:10px;background:var(--green);color:var(--parch);border:none;
+  cursor:pointer;font-family:'IM Fell English',serif;font-size:0.95rem;
+  letter-spacing:0.04em;transition:all 0.2s;border-top:2px solid var(--gold);
+  flex-shrink:0;
+}
+.sim-btn:hover{background:var(--green2);color:var(--gold2)}
+
+/* ══ COL MID: MAPA ══ */
+.col-m{
+  display:flex;flex-direction:column;overflow:hidden;
+  background:#c8b89a;position:relative;
+}
+.map-wrap{
+  flex:1;min-height:0;overflow:hidden;position:relative;
+}
+.map-img{
+  width:100%;height:100%;object-fit:cover;object-position:center;
+  display:block;
+}
+/* overlay SVG sobre el mapa */
+.map-svg-overlay{
+  position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+}
+/* leyenda bajo el mapa */
+.map-footer{
+  background:rgba(10,20,10,0.88);border-top:1px solid rgba(181,134,13,0.35);
+  padding:6px 12px;flex-shrink:0;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.mf-title{font-family:'IM Fell English',serif;font-size:0.9rem;color:var(--parch);flex-shrink:0}
+.mf-items{display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1}
+.mf-item{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:rgba(245,237,216,0.8)}
+.mf-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.mbadge{font-family:'Rajdhani',sans-serif;font-size:0.54rem;font-weight:700;padding:1px 4px;border-radius:2px}
+.ub{background:#1a4a8a;color:white}.pb{background:var(--green);color:white}
+
+/* ══ COL RIGHT: RESULTADOS ══ */
+.col-r{
+  background:var(--slate);
+  display:flex;flex-direction:column;overflow:hidden;
+  border-left:2px solid rgba(181,134,13,0.4);
+}
+.col-r .col-cap{background:var(--slate2);color:var(--gold2);border-bottom:1px solid rgba(181,134,13,0.2)}
+.res-scroll{flex:1;overflow-y:auto;padding:12px 12px 20px}
+.res-scroll::-webkit-scrollbar{width:3px}
+.res-scroll::-webkit-scrollbar-thumb{background:var(--slate2);border-radius:2px}
+
+/* empty state */
+.res-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:10px;opacity:0.35;
+  font-family:'IM Fell English',serif;font-size:1rem;color:var(--parch);
+  font-style:italic;text-align:center;line-height:1.7;padding:20px;
+}
+
+/* stats bar */
+.stat-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.stat-box{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:7px 8px;text-align:center}
+.stat-val{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.4rem;color:var(--parch);line-height:1}
+.stat-lbl{font-size:0.6rem;color:rgba(245,237,216,0.5);margin-top:2px;font-style:italic}
+
+/* curules hemiciclo (para plurinominal) */
+.hemi-wrap{margin-bottom:12px}
+.hemi-title{font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,237,216,0.45);margin-bottom:6px}
+.hemi-grid{display:flex;flex-wrap:wrap;gap:4px;padding:10px;background:rgba(0,0,0,0.2);border-radius:6px;justify-content:center;border:1px solid rgba(255,255,255,0.07)}
+.curul{width:17px;height:17px;border-radius:50%;transition:transform 0.1s;cursor:default;flex-shrink:0}
+.curul:hover{transform:scale(1.5)}
+
+/* party result rows */
+.party-rows{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.party-row{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+  border-radius:4px;padding:7px 10px;border-left:3px solid;
+}
+.pr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.pr-name{font-size:0.75rem;font-weight:600;color:rgba(245,237,216,0.9)}
+.pr-esc{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;color:var(--parch)}
+.pr-bar-bg{height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden}
+.pr-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease}
+.pr-meta{display:flex;justify-content:space-between;margin-top:3px;font-size:0.62rem;color:rgba(245,237,216,0.45);font-family:'Rajdhani',sans-serif}
+
+/* circ result sections */
+.circ-section{margin-bottom:10px}
+.cs-title{
+  font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.67rem;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:rgba(245,237,216,0.5);padding-bottom:4px;margin-bottom:6px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;gap:6px;
+}
+.cs-badge{font-size:0.54rem;font-weight:700;padding:1px 5px;border-radius:2px;letter-spacing:0.04em}
+
+/* nota pedagogica */
+.nota{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(181,134,13,0.3);
+  border-radius:4px;padding:8px 10px;font-size:0.71rem;color:rgba(245,237,216,0.65);
+  font-style:italic;margin-top:8px;line-height:1.55;
+}
+.nota strong{font-style:normal;color:var(--gold2)}
+
+/* winner chip */
+.wchip{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:0.7rem;font-weight:700;color:white;margin:2px}
+
+/* mayoritario resultado */
+.may-winner{
+  text-align:center;padding:16px 10px;
+  font-family:'IM Fell English',serif;color:var(--parch);
+}
+.may-winner .w-name{font-size:1.4rem;font-style:italic;color:var(--gold2)}
+.may-winner .w-sub{font-size:0.75rem;color:rgba(245,237,216,0.5);margin-top:4px;font-family:'Rajdhani',sans-serif;font-style:normal;text-transform:uppercase;letter-spacing:0.1em}
+
+/* method table */
+.mt-wrap{overflow-x:auto;border:1px solid rgba(255,255,255,0.1);border-radius:3px;margin-top:5px}
+.mt{border-collapse:collapse;font-size:0.66rem;min-width:100%}
+.mt th{background:rgba(0,0,0,0.4);color:rgba(245,237,216,0.7);padding:3px 7px;text-align:center;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.62rem;white-space:nowrap}
+.mt td{padding:2px 7px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;white-space:nowrap;color:rgba(245,237,216,0.7)}
+.mt td.ww{font-weight:700;background:rgba(46,139,87,0.3);color:#7ddfaa}
+.mt td.pc{text-align:left;font-weight:600}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fadein{animation:fadeUp 0.3s ease}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Sistema Electoral de <em>Macondo</em></div>
+    <div class="hdr-sub">Laboratorio interactivo · Ciencia Política</div>
+  </div>
+  <div class="hdr-orn">✦ República Electoral ✦</div>
+</div>
+
+<div class="ws">
+
+<!-- ══ COL IZQUIERDA: DISEÑADOR ══ -->
+<div class="col-l">
+  <div class="col-cap">⚙ Diseñador del Sistema Electoral</div>
+  <div class="col-scroll">
+
+    <!-- BLOQUE 1 -->
+    <div class="step">
+      <div class="step-hdr" onclick="tog(1)">
+        <div class="snum">1</div>
+        <div class="stitle">Circunscripciones</div>
+        <div class="sarr open" id="a1">▶</div>
+      </div>
+      <div class="step-body" id="b1">
+        <div class="sdesc">Cada circunscripción define su tipo, escaños y método. Pueden coexistir uninominales y plurinominales.</div>
+        <div class="ctabs">
+          <div class="ctab on" id="t-terr" onclick="switchCT('terr')">Territorial</div>
+          <div class="ctab" id="t-esp" onclick="switchCT('esp')">Especial</div>
+          <div class="ctab" id="t-uni" onclick="switchCT('uni')">Única</div>
+        </div>
+        <div class="csec on" id="s-terr">
+          <div class="circ-list" id="circ-list"></div>
+          <button class="add-btn" onclick="addCirc()">+ Agregar circunscripción</button>
+        </div>
+        <div class="csec" id="s-esp">
+          <div style="font-size:0.7rem;color:var(--sepia);font-style:italic;margin-bottom:6px">Coexisten con las territoriales. Cada una con su tipo y método.</div>
+          <div class="esp-list" id="esp-list"></div>
+        </div>
+        <div class="csec" id="s-uni">
+          <div style="font-size:0.7rem;color:var(--sepia);font-style:italic;margin-bottom:6px">Un único distrito nacional.</div>
+          <div id="uni-cfg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 2 -->
+    <div class="step">
+      <div class="step-hdr" onclick="tog(2)">
+        <div class="snum">2</div>
+        <div class="stitle">Tipo de Voto</div>
+        <div class="sarr open" id="a2">▶</div>
+      </div>
+      <div class="step-body" id="b2">
+        <div class="sdesc">Afecta la participación y legitimidad. El voto obligatorio eleva la participación entre 10 y 15 pp (Lijphart, 1997).</div>
+        <div class="pills">
+          <label class="pill on"><input type="radio" name="tv" value="facultativo" checked onchange="hlPill(this)"><div><strong>Facultativo</strong><span>Derecho ciudadano. El elector decide si participa.</span></div></label>
+          <label class="pill"><input type="radio" name="tv" value="obligatorio" onchange="hlPill(this)"><div><strong>Obligatorio</strong><span>Todos deben votar. Reduce sesgo socioeconómico.</span></div></label>
+          <label class="pill"><input type="radio" name="tv" value="electronico" onchange="hlPill(this)"><div><strong>Electrónico</strong><span>Digital. Genera debate sobre auditoría y confianza.</span></div></label>
+          <label class="pill"><input type="radio" name="tv" value="fisico" onchange="hlPill(this)"><div><strong>Físico / Tradicional</strong><span>Papeleta en papel. Alta trazabilidad.</span></div></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 3 -->
+    <div class="step">
+      <div class="step-hdr" onclick="tog(3)">
+        <div class="snum">3</div>
+        <div class="stitle">Umbral Electoral</div>
+        <div class="sarr open" id="a3">▶</div>
+      </div>
+      <div class="step-body" id="b3">
+        <div class="sdesc">% mínimo para participar en el reparto. Aplica en circunscripciones plurinominales.</div>
+        <div class="ubrow">
+          <input type="range" id="ub-slider" min="0" max="20" step="0.5" value="0"
+            oninput="umbral=parseFloat(this.value);document.getElementById('ubval').textContent=this.value+'%'">
+          <div class="ubval" id="ubval">0%</div>
+        </div>
+        <div class="unote">0% sin umbral · 3% bajo · 5% estándar europeo · 10% alto</div>
+      </div>
+    </div>
+
+  </div><!-- end col-scroll -->
+  <button class="sim-btn" onclick="simulate()">✦ Simular Elecciones de Macondo ✦</button>
+</div>
+
+<!-- ══ COL CENTRO: MAPA ══ -->
+<div class="col-m">
+  <div class="map-wrap" id="map-wrap">
+    <img class="map-img" src="/mnt/user-data/uploads/1787846388282_image.png" alt="Mapa de Macondo" id="map-img">
+    <svg class="map-svg-overlay" id="map-overlay" viewBox="0 0 1000 680" preserveAspectRatio="xMidYMid slice"></svg>
+  </div>
+  <div class="map-footer">
+    <div class="mf-title" id="mf-title">Macondo</div>
+    <div class="mf-items" id="mf-items">
+      <span style="font-size:0.65rem;color:rgba(245,237,216,0.45);font-style:italic">Configura las circunscripciones</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COL DERECHA: RESULTADOS ══ -->
+<div class="col-r">
+  <div class="col-cap">⚖ Resultados Electorales</div>
+  <div class="res-scroll" id="res-scroll">
+    <div class="res-empty" id="res-empty">
+      <div style="font-size:2rem;opacity:0.5">🗳</div>
+      Configura el sistema<br>y pulsa <em>Simular</em><br>para ver los resultados
+    </div>
+    <div id="res-content" style="display:none"></div>
+  </div>
+</div>
+
+</div><!-- end ws -->
+
+<script>
+// ═══════════════════════════════════
+// DATOS BASE
+// ═══════════════════════════════════
+const PARTIDOS = [
+  {id:'lib', nombre:'Partido Liberal Macondiano',  sigla:'PLM', color:'#c0392b',
+   cand:['Cnel. Aureliano Buendía','Úrsula Iguarán','Rebeca Buendía','Amaranta Buendía','José Arcadio Buendía','Remedios la Bella']},
+  {id:'con', nombre:'Partido Conservador',         sigla:'PCM', color:'#1a4a8a',
+   cand:['Don Apolinar Moscote','Pilar Ternera','Gerineldo Márquez','Meme Buendía','Fernanda del Carpio','Aureliano Segundo']},
+  {id:'way', nombre:'Movimiento Guajiro Wayuu',    sigla:'MGW', color:'#8b4513',
+   cand:['Visitación','Cataure','Natividad','Márquez']},
+  {id:'ban', nombre:'Frente Unido Bananero',       sigla:'FUB', color:'#27ae60',
+   cand:['Mauricio Babilonia','J.A. Segundo','Santa Sofía','Petra Cotes']},
+  {id:'git', nombre:'Colectivo Gitano y Viajeros', sigla:'CGV', color:'#8e44ad',
+   cand:['Melquíades','Francisco el Hombre','Pilar Ternera II']}
+];
+
+// Fortalezas relativas de cada partido (suman 100) - determinan distribución aleatoria
+const FUERZA = {lib:34, con:27, way:12, ban:18, git:9};
+
+// Colores para zonas del mapa
+const ZCOLS = ['rgba(232,160,32,0.38)','rgba(58,122,181,0.38)','rgba(192,57,43,0.38)','rgba(39,174,96,0.38)','rgba(142,68,173,0.38)','rgba(22,160,133,0.38)','rgba(211,84,0,0.38)'];
+const ZSTROKE = ['#e8a020','#3a7ab5','#c0392b','#27ae60','#8e44ad','#16a085','#d35400'];
+
+// Zonas del mapa de Macondo (coordenadas aproximadas en viewBox 1000×680)
+// Las circunscripciones se mapean a estas zonas cuando se crean
+const MAP_ZONES = [
+  // Centro-pueblo (área central del mapa)
+  {label:'Centro', path:'M 450,290 L 540,280 L 570,330 L 550,380 L 480,390 L 440,360 Z'},
+  // La Ciénaga
+  {label:'La Ciénaga', path:'M 340,180 L 500,160 L 540,240 L 480,280 L 360,270 L 310,220 Z'},
+  // Zona bananera (United Fruit) sur-este
+  {label:'Zona Bananera', path:'M 570,420 L 700,400 L 730,500 L 680,540 L 570,520 L 530,470 Z'},
+  // Orilla del Río Macondo / Estación
+  {label:'Orilla del Río', path:'M 350,370 L 450,360 L 480,390 L 440,430 L 360,440 L 320,410 Z'},
+  // Sierra / montaña (derecha)
+  {label:'Sierra', path:'M 720,340 L 820,280 L 900,360 L 870,460 L 780,470 L 710,420 Z'},
+  // Norte / Mar
+  {label:'Norte', path:'M 200,80 L 600,60 L 640,160 L 500,160 L 340,180 L 200,160 Z'},
+  // Barranquilla / Oeste
+  {label:'Occidente', path:'M 50,260 L 200,240 L 220,340 L 180,420 L 60,400 Z'}
+];
+
+// ═══════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════
+let circType = 'terr';
+let circList = [
+  {id:'c1', nombre:'Centro', escanios:3, tipo:'pluri', metodo:'dhondt',    cand:'lista_cerrada_bloqueada', color:ZSTROKE[0], zoneIdx:0},
+  {id:'c2', nombre:'La Ciénaga', escanios:2, tipo:'pluri', metodo:'dhondt', cand:'lista_cerrada_bloqueada', color:ZSTROKE[1], zoneIdx:1},
+  {id:'c3', nombre:'Zona Bananera', escanios:1, tipo:'uni', metodo:'mayoritario', cand:'uninominal',        color:ZSTROKE[2], zoneIdx:2}
+];
+const ESP_BASE = [
+  {id:'way2', label:'Comunidad Wayuu',             escanios:1, tipo:'uni', metodo:'mayoritario', cand:'uninominal', checked:false, color:'#7b3f00'},
+  {id:'afro', label:'Comunidad Afromacondiana',    escanios:1, tipo:'uni', metodo:'mayoritario', cand:'uninominal', checked:false, color:'#2c1810'},
+  {id:'ext',  label:'Macondianos en el Exterior',  escanios:1, tipo:'uni', metodo:'mayoritario', cand:'uninominal', checked:false, color:'#2a4a8a'}
+];
+let especiales = ESP_BASE.map(e=>({...e}));
+let unicaConf = {escanios:6, tipo:'pluri', metodo:'dhondt', cand:'lista_cerrada_bloqueada'};
+let umbral = 0;
+let idCnt = 10;
+
+const METODOS = [{v:'dhondt',l:"D'Hondt"},{v:'saintelague',l:'Sainte-Laguë'},{v:'hare',l:'Cuota de Hare'}];
+const CANDS = [{v:'lista_cerrada_bloqueada',l:'Lista cerrada bloqueada'},{v:'lista_cerrada_desbloqueada',l:'Lista cerrada desbloqueada'},{v:'lista_abierta',l:'Lista abierta'}];
+
+// ═══════════════════════════════════
+// UI
+// ═══════════════════════════════════
+function tog(n){
+  const b=document.getElementById('b'+n), a=document.getElementById('a'+n);
+  b.classList.toggle('col'); a.classList.toggle('open');
+}
+function hlPill(el){
+  document.querySelectorAll(`input[name="${el.name}"]`).forEach(r=>r.closest('.pill').classList.remove('on'));
+  el.closest('.pill').classList.add('on');
+}
+function switchCT(t){
+  circType=t;
+  ['terr','esp','uni'].forEach(x=>{
+    document.getElementById('t-'+x).classList.toggle('on',x===t);
+    document.getElementById('s-'+x).classList.toggle('on',x===t);
+  });
+  updateAll();
+}
+
+// ═══════════════════════════════════
+// RENDER CIRCS
+// ═══════════════════════════════════
+function renderCircList(){
+  const cont=document.getElementById('circ-list'); cont.innerHTML='';
+  circList.forEach((c,i)=>{
+    const isUni=c.tipo==='uni';
+    const d=document.createElement('div');
+    d.className='ci'; d.style.borderLeftColor=c.color;
+    d.innerHTML=`
+      <div class="ci-top">
+        <div class="ci-sw" style="background:${c.color}" onclick="cycleCol(${i})" title="Color"></div>
+        <input class="ci-nm" type="text" value="${c.nombre}" onchange="circList[${i}].nombre=this.value;updateAll()">
+        <button class="ci-rm" onclick="removeCirc(${i})" ${circList.length<=1?'disabled':''}>✕</button>
+      </div>
+      <div class="ci-row">
+        <div><div class="fl">Escaños</div>
+          <input class="fi" type="number" min="1" max="20" value="${c.escanios}"
+            onchange="circList[${i}].escanios=Math.max(1,parseInt(this.value)||1);
+              if(circList[${i}].escanios===1){circList[${i}].tipo='uni';circList[${i}].metodo='mayoritario';circList[${i}].cand='uninominal';}
+              updateAll();">
+        </div>
+        <div><div class="fl">Tipo</div>
+          <div class="ttog">
+            <div class="tb uni ${isUni?'on':''}" onclick="setTipo(${i},'uni','t')">Uninominal</div>
+            <div class="tb pluri ${!isUni?'on':''}" onclick="setTipo(${i},'pluri','t')" ${c.escanios===1?'style="opacity:.35;pointer-events:none"':''}>Plurinominal</div>
+          </div>
+        </div>
+      </div>
+      <div class="pcfg ${!isUni?'vis':''}">
+        <div class="mgrid">
+          <div><div class="ml">Método</div>
+            <select class="ms" onchange="circList[${i}].metodo=this.value;updateAll();">
+              ${METODOS.map(m=>`<option value="${m.v}" ${m.v===c.metodo?'selected':''}>${m.l}</option>`).join('')}
+            </select></div>
+          <div><div class="ml">Candidatura</div>
+            <select class="ms" onchange="circList[${i}].cand=this.value;updateAll();">
+              ${CANDS.map(k=>`<option value="${k.v}" ${k.v===c.cand?'selected':''}>${k.l}</option>`).join('')}
+            </select></div>
+        </div>
+      </div>`;
+    cont.appendChild(d);
+  });
+}
+
+function setTipo(i,tipo,scope){
+  if(scope==='t'){
+    if(tipo==='pluri'&&circList[i].escanios<2)circList[i].escanios=2;
+    circList[i].tipo=tipo;
+    if(tipo==='uni'){circList[i].metodo='mayoritario';circList[i].cand='uninominal';}
+    else{circList[i].metodo='dhondt';circList[i].cand='lista_cerrada_bloqueada';}
+  } else {
+    const idx=especiales.findIndex(e=>e.id===i);if(idx<0)return;
+    if(tipo==='pluri'&&especiales[idx].escanios<2)especiales[idx].escanios=2;
+    especiales[idx].tipo=tipo;
+    if(tipo==='uni'){especiales[idx].metodo='mayoritario';especiales[idx].cand='uninominal';}
+    else{especiales[idx].metodo='dhondt';especiales[idx].cand='lista_cerrada_bloqueada';}
+  }
+  updateAll();
+}
+function cycleCol(i){
+  const idx=ZSTROKE.indexOf(circList[i].color);
+  circList[i].color=ZSTROKE[(idx+1)%ZSTROKE.length];
+  updateAll();
+}
+function addCirc(){
+  idCnt++;
+  const zi=circList.length%MAP_ZONES.length;
+  circList.push({id:'c'+idCnt,nombre:MAP_ZONES[zi]?.label||'Circunscripción '+idCnt,
+    escanios:2,tipo:'pluri',metodo:'dhondt',cand:'lista_cerrada_bloqueada',
+    color:ZSTROKE[zi],zoneIdx:zi});
+  updateAll();
+}
+function removeCirc(i){if(circList.length<=1)return;circList.splice(i,1);updateAll();}
+
+function renderEsp(){
+  const cont=document.getElementById('esp-list'); cont.innerHTML='';
+  especiales.forEach((e,i)=>{
+    const isUni=e.tipo==='uni';
+    const d=document.createElement('div'); d.className='esp';
+    d.innerHTML=`
+      <div class="esp-hdr">
+        <input type="checkbox" id="ec-${e.id}" ${e.checked?'checked':''} onchange="especiales[${i}].checked=this.checked;updateAll()">
+        <label for="ec-${e.id}">${e.label}</label>
+        <span style="font-size:0.6rem;color:var(--sepia);font-family:'Rajdhani',sans-serif;font-weight:600;margin-right:2px">Esc.</span>
+        <input class="esp-n" type="number" min="1" max="10" value="${e.escanios}"
+          onchange="especiales[${i}].escanios=Math.max(1,parseInt(this.value)||1);
+            if(especiales[${i}].escanios===1){especiales[${i}].tipo='uni';especiales[${i}].metodo='mayoritario';especiales[${i}].cand='uninominal';}
+            updateAll();">
+      </div>
+      <div class="esp-cfg ${e.checked&&!isUni?'vis':''}">
+        <div class="ttog" style="margin-bottom:4px">
+          <div class="tb uni ${isUni?'on':''}" onclick="setTipo('${e.id}','uni','e')">Uni</div>
+          <div class="tb pluri ${!isUni?'on':''}" onclick="setTipo('${e.id}','pluri','e')" ${e.escanios===1?'style="opacity:.35;pointer-events:none"':''}>Pluri</div>
+        </div>
+        <div class="mgrid">
+          <div><div class="ml">Método</div>
+            <select class="ms" onchange="especiales[${i}].metodo=this.value;updateAll();">
+              ${METODOS.map(m=>`<option value="${m.v}" ${m.v===e.metodo?'selected':''}>${m.l}</option>`).join('')}
+            </select></div>
+          <div><div class="ml">Candidatura</div>
+            <select class="ms" onchange="especiales[${i}].cand=this.value;updateAll();">
+              ${CANDS.map(k=>`<option value="${k.v}" ${k.v===e.cand?'selected':''}>${k.l}</option>`).join('')}
+            </select></div>
+        </div>
+      </div>`;
+    cont.appendChild(d);
+  });
+}
+
+function renderUni(){
+  const cont=document.getElementById('uni-cfg');
+  const isUni=unicaConf.tipo==='uni';
+  cont.innerHTML=`
+    <div class="urow" style="margin-bottom:6px">
+      <div><div class="fl">Escaños</div>
+        <input class="fi" type="number" min="1" max="30" value="${unicaConf.escanios}"
+          onchange="unicaConf.escanios=Math.max(1,parseInt(this.value)||1);
+            if(unicaConf.escanios===1){unicaConf.tipo='uni';unicaConf.metodo='mayoritario';unicaConf.cand='uninominal';}
+            updateAll();">
+      </div>
+      <div><div class="fl">Tipo</div>
+        <div class="ttog">
+          <div class="tb uni ${isUni?'on':''}" onclick="unicaConf.tipo='uni';unicaConf.metodo='mayoritario';unicaConf.cand='uninominal';updateAll()">Uni</div>
+          <div class="tb pluri ${!isUni?'on':''}" onclick="unicaConf.tipo='pluri';unicaConf.metodo='dhondt';unicaConf.cand='lista_cerrada_bloqueada';updateAll()" ${unicaConf.escanios===1?'style="opacity:.35;pointer-events:none"':''}>Pluri</div>
+        </div>
+      </div>
+    </div>
+    ${!isUni?`<div class="mgrid">
+      <div><div class="ml">Método</div><select class="ms" onchange="unicaConf.metodo=this.value;updateAll();">${METODOS.map(m=>`<option value="${m.v}" ${m.v===unicaConf.metodo?'selected':''}>${m.l}</option>`).join('')}</select></div>
+      <div><div class="ml">Candidatura</div><select class="ms" onchange="unicaConf.cand=this.value;updateAll();">${CANDS.map(k=>`<option value="${k.v}" ${k.v===unicaConf.cand?'selected':''}>${k.l}</option>`).join('')}</select></div>
+    </div>`:''}`;
+}
+
+// ═══════════════════════════════════
+// GET CIRCS
+// ═══════════════════════════════════
+function getCircs(){
+  if(circType==='uni') return [{id:'unica',nombre:'Macondo (Única)',...unicaConf,color:'#b5860d',zoneIdx:-1}];
+  if(circType==='terr') return circList.map(c=>({...c}));
+  return [...circList.map(c=>({...c})),...especiales.filter(e=>e.checked).map(e=>({...e,nombre:e.label}))];
+}
+
+// ═══════════════════════════════════
+// MAP OVERLAY
+// ═══════════════════════════════════
+function updateMap(){
+  const circs=getCircs();
+  const svg=document.getElementById('map-overlay');
+  svg.innerHTML='';
+
+  circs.forEach((c,i)=>{
+    const zi=c.zoneIdx!=null&&c.zoneIdx>=0?c.zoneIdx:i%MAP_ZONES.length;
+    const zone=MAP_ZONES[zi];
+    if(!zone) return;
+
+    // zona coloreada
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',zone.path);
+    path.setAttribute('fill',ZCOLS[i%ZCOLS.length]);
+    path.setAttribute('stroke',c.color);
+    path.setAttribute('stroke-width','2.5');
+    path.setAttribute('stroke-opacity','0.85');
+    svg.appendChild(path);
+
+    // label badge
+    const bb=getBBoxFromPath(zone.path);
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',bb.cx-52); rect.setAttribute('y',bb.cy-11);
+    rect.setAttribute('width','104'); rect.setAttribute('height','22');
+    rect.setAttribute('rx','3'); rect.setAttribute('fill','rgba(10,20,10,0.82)');
+    g.appendChild(rect);
+    const t1=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t1.setAttribute('x',bb.cx); t1.setAttribute('y',bb.cy+4);
+    t1.setAttribute('text-anchor','middle');
+    t1.setAttribute('font-family',"'Rajdhani',sans-serif");
+    t1.setAttribute('font-weight','700'); t1.setAttribute('font-size','9.5');
+    t1.setAttribute('fill','white');
+    t1.textContent=`${c.nombre} · ${c.escanios} esc.`;
+    g.appendChild(t1);
+    svg.appendChild(g);
+  });
+
+  // Footer
+  document.getElementById('mf-title').textContent='Macondo';
+  const items=document.getElementById('mf-items');
+  items.innerHTML=circs.map(c=>
+    `<div class="mf-item">
+      <div class="mf-dot" style="background:${c.color}"></div>
+      <span>${c.nombre}: ${c.escanios}</span>
+      <span class="mbadge ${c.tipo==='uni'?'ub':'pb'}">${c.tipo==='uni'?'U':'P'}</span>
+    </div>`).join('');
+}
+
+function getBBoxFromPath(pathStr){
+  // Parse polygon coords to find centroid
+  const nums=pathStr.replace(/[MLZ]/gi,' ').trim().split(/[\s,]+/).filter(s=>s&&!isNaN(s)).map(Number);
+  let sx=0,sy=0,n=nums.length/2;
+  for(let i=0;i<nums.length;i+=2){sx+=nums[i];sy+=nums[i+1];}
+  return{cx:sx/n,cy:sy/n};
+}
+
+// ═══════════════════════════════════
+// UPDATE ALL
+// ═══════════════════════════════════
+function updateAll(){
+  renderCircList(); renderEsp(); renderUni(); updateMap();
+}
+
+// ═══════════════════════════════════
+// GENERACIÓN ALEATORIA DE VOTOS
+// Usa las fortalezas base + ruido aleatorio por circunscripción
+// ═══════════════════════════════════
+function genVotos(circ){
+  // Base: distribución según FUERZA + variación local aleatoria ±30%
+  const total = 1000 + Math.floor(Math.random()*4000); // entre 1000 y 5000 votos por circ
+  const raw={};
+  let sumF=0;
+  PARTIDOS.forEach(p=>{
+    const ruido = 0.7 + Math.random()*0.6; // factor entre 0.7 y 1.3
+    raw[p.id]=FUERZA[p.id]*ruido;
+    sumF+=raw[p.id];
+  });
+  const votos={};
+  PARTIDOS.forEach(p=>{ votos[p.id]=Math.round((raw[p.id]/sumF)*total); });
+  return {votos, total};
+}
+
+// ═══════════════════════════════════
+// SIMULATE
+// ═══════════════════════════════════
+function simulate(){
+  const circs=getCircs();
+  const allRes=circs.map(circ=>{
+    const {votos,total}=genVotos(circ);
+    const umbralAbs=(umbral/100)*total;
+    const enriched=PARTIDOS.map(p=>({
+      ...p, vots:votos[p.id],
+      pct:total>0?votos[p.id]/total*100:0,
+      ok:votos[p.id]>=umbralAbs
+    }));
+    const aptos=enriched.filter(p=>p.ok);
+    const excl=enriched.filter(p=>!p.ok);
+    let res,mt=null;
+    if(circ.tipo==='uni'||circ.metodo==='mayoritario'){
+      const w=[...aptos].sort((a,b)=>b.vots-a.vots)[0];
+      res=enriched.map(p=>({...p,escanios:w&&p.id===w.id?circ.escanios:0}));
+    } else if(circ.metodo==='dhondt'){
+      const r=dhondt(aptos,circ.escanios);
+      res=[...r.res,...excl.map(p=>({...p,escanios:0}))]; mt={type:'dhondt',data:r.tabla};
+    } else if(circ.metodo==='saintelague'){
+      const r=sl(aptos,circ.escanios);
+      res=[...r.res,...excl.map(p=>({...p,escanios:0}))]; mt={type:'sl',data:r.tabla};
+    } else {
+      const r=hare(aptos,circ.escanios);
+      res=[...r.res,...excl.map(p=>({...p,escanios:0}))]; mt={type:'hare',data:r.tabla};
+    }
+    return{circ,res,mt,excl,total,votos};
+  });
+  renderResults(allRes);
+}
+
+// ═══════════════════════════════════
+// MÉTODOS
+// ═══════════════════════════════════
+function dhondt(ps,n){
+  const c=ps.map(p=>({...p,escanios:0}));
+  const q=[];
+  c.forEach(p=>{for(let d=1;d<=n;d++)q.push({p,v:p.vots/d,d});});
+  q.sort((a,b)=>b.v-a.v);
+  const w=q.slice(0,n);
+  w.forEach(x=>{const p=c.find(p=>p.id===x.p.id);if(p)p.escanios++;});
+  const divs=Array.from({length:n},(_,i)=>i+1);
+  return{res:c,tabla:{divs,ps:c.map(p=>({...p,qs:divs.map(d=>({v:Math.round(p.vots/d),win:w.some(x=>x.p.id===p.id&&x.d===d)}))}))}};
+}
+function sl(ps,n){
+  const c=ps.map(p=>({...p,escanios:0}));
+  const divs=Array.from({length:n},(_,i)=>1+i*2);
+  const q=[];
+  c.forEach(p=>{divs.forEach(d=>q.push({p,v:p.vots/d,d}));});
+  q.sort((a,b)=>b.v-a.v);
+  const w=q.slice(0,n);
+  w.forEach(x=>{const p=c.find(p=>p.id===x.p.id);if(p)p.escanios++;});
+  return{res:c,tabla:{divs,ps:c.map(p=>({...p,qs:divs.map(d=>({v:Math.round(p.vots/d),win:w.some(x=>x.p.id===p.id&&x.d===d)}))}))}};
+}
+function hare(ps,n){
+  const tot=ps.reduce((s,p)=>s+p.vots,0);
+  const cuota=tot/n;
+  let c=ps.map(p=>{const ex=p.vots/cuota;return{...p,ex,escanios:Math.floor(ex),resto:ex-Math.floor(ex)};});
+  const asi=c.reduce((s,p)=>s+p.escanios,0);
+  [...c].sort((a,b)=>b.resto-a.resto).slice(0,n-asi).forEach(x=>{const p=c.find(p=>p.id===x.id);if(p){p.escanios++;p.bonus=true;}});
+  return{res:c,tabla:{cuota:cuota.toFixed(0),ps:c}};
+}
+
+// ═══════════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════════
+function renderResults(allRes){
+  document.getElementById('res-empty').style.display='none';
+  const rc=document.getElementById('res-content');
+  rc.style.display='block'; rc.classList.remove('fadein');
+  void rc.offsetWidth; rc.classList.add('fadein');
+
+  // Totales globales
+  const totP={};
+  PARTIDOS.forEach(p=>{totP[p.id]={...p,escanios:0,vTotal:0};});
+  allRes.forEach(({res})=>res.forEach(p=>{if(totP[p.id]){totP[p.id].escanios+=p.escanios||0;totP[p.id].vTotal+=p.vots||0;}}));
+  const totalEsc=Object.values(totP).reduce((s,p)=>s+p.escanios,0);
+  const totalVot=allRes.reduce((s,r)=>s+r.total,0);
+  const nCircs=allRes.length;
+  const tiposMix=[...new Set(allRes.map(r=>r.circ.tipo))];
+
+  let html='';
+
+  // STAT BAR
+  html+=`<div class="stat-bar">
+    <div class="stat-box"><div class="stat-val">${totalVot.toLocaleString('es-CO')}</div><div class="stat-lbl">votos emitidos</div></div>
+    <div class="stat-box"><div class="stat-val">${totalEsc}</div><div class="stat-lbl">escaños totales</div></div>
+    <div class="stat-box"><div class="stat-val">${nCircs}</div><div class="stat-lbl">circunscripción${nCircs>1?'es':''}</div></div>
+  </div>`;
+
+  // HEMICICLO GLOBAL (si hay plurinominales)
+  const hayPluri=allRes.some(r=>r.circ.tipo==='pluri');
+  if(hayPluri){
+    html+=`<div class="hemi-wrap">
+      <div class="hemi-title">Composición del Consejo Municipal de Macondo — ${totalEsc} escaños</div>
+      <div class="hemi-grid" id="hemi-global">`;
+    // ordenar por escaños desc para agrupar visualmente
+    Object.values(totP).filter(p=>p.escanios>0).sort((a,b)=>b.escanios-a.escanios).forEach(p=>{
+      for(let i=0;i<p.escanios;i++){
+        html+=`<div class="curul" style="background:${p.color}" title="${p.nombre}: ${p.escanios} escaños"></div>`;
+      }
+    });
+    html+=`</div></div>`;
+  }
+
+  // PARTY ROWS GLOBALES
+  html+=`<div class="party-rows">`;
+  Object.values(totP).filter(p=>p.escanios>0||p.vTotal>0).sort((a,b)=>b.escanios-a.escanios).forEach(p=>{
+    const pctV=totalVot>0?(p.vTotal/totalVot*100).toFixed(1):'0';
+    const pctE=totalEsc>0?Math.round(p.escanios/totalEsc*100):0;
+    const barW=totalEsc>0?Math.round(p.escanios/totalEsc*100):0;
+    html+=`<div class="party-row" style="border-left-color:${p.color}">
+      <div class="pr-top">
+        <span class="pr-name">${p.nombre}</span>
+        <span class="pr-esc">${p.escanios} esc.</span>
+      </div>
+      <div class="pr-bar-bg"><div class="pr-bar-fill" style="width:${barW}%;background:${p.color}"></div></div>
+      <div class="pr-meta"><span>${p.vTotal.toLocaleString('es-CO')} votos (${pctV}%)</span><span>${pctE}% de escaños</span></div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // POR CIRCUNSCRIPCIÓN
+  html+=`<div style="font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,237,216,0.4);padding-bottom:4px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08)">Por circunscripción</div>`;
+
+  allRes.forEach(({circ,res,mt,excl,total})=>{
+    const isUni=circ.tipo==='uni';
+    const gan=res.filter(p=>p.escanios>0).sort((a,b)=>b.escanios-a.escanios);
+    const metLabel=isUni?'Mayoritario':(METODOS.find(m=>m.v===circ.metodo)?.l||'');
+
+    html+=`<div class="circ-section">
+      <div class="cs-title">
+        <div class="ci-sw" style="background:${circ.color};width:9px;height:9px;border-radius:2px;flex-shrink:0"></div>
+        ${circ.nombre}
+        <span class="cs-badge ${isUni?'ub':'pb'}">${isUni?'UNI':'PLURI'}</span>
+        <span style="font-weight:400;font-size:0.6rem;opacity:0.6">· ${circ.escanios} esc. · ${metLabel} · ${total.toLocaleString('es-CO')} votos</span>
+      </div>`;
+
+    if(isUni){
+      // Mayoritario: mostrar ganador prominente
+      const w=gan[0];
+      if(w){
+        html+=`<div class="may-winner">
+          <div class="w-name">${w.cand?w.cand[0]:w.nombre}</div>
+          <div style="font-size:0.75rem;color:rgba(245,237,216,0.6);font-family:'Rajdhani',sans-serif">${w.nombre}</div>
+          <div class="w-sub">${w.vots?.toLocaleString('es-CO')} votos · ${w.pct?.toFixed(1)}%</div>
+        </div>`;
+      }
+    } else {
+      // Plurinominal: mini hemiciclo + ganadores
+      html+=`<div class="hemi-grid" style="gap:3px;padding:7px;margin-bottom:6px">`;
+      res.filter(p=>p.escanios>0).sort((a,b)=>b.escanios-a.escanios).forEach(p=>{
+        for(let i=0;i<p.escanios;i++) html+=`<div class="curul" style="background:${p.color};width:14px;height:14px" title="${p.nombre}: ${p.escanios}"></div>`;
+      });
+      html+=`</div>`;
+      html+=`<div style="margin-bottom:5px">${gan.map(p=>`<span class="wchip" style="background:${p.color}">${p.sigla}: ${p.escanios}</span>`).join('')}</div>`;
+
+      // Tabla método
+      if(mt&&(mt.type==='dhondt'||mt.type==='sl')){
+        const lbl=mt.type==='dhondt'?"D'Hondt (÷1,2,3…)":"Sainte-Laguë (÷1,3,5…)";
+        html+=`<div style="font-family:'Rajdhani',sans-serif;font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(245,237,216,0.35);margin:4px 0 2px">${lbl}</div>
+          <div class="mt-wrap"><table class="mt">
+            <thead><tr><th>÷</th>${mt.data.ps.map(p=>`<th style="color:${p.color}">${p.sigla}</th>`).join('')}</tr></thead>
+            <tbody>`;
+        mt.data.divs.forEach((div,i)=>{
+          html+=`<tr><td style="font-family:'Rajdhani',sans-serif;font-weight:700;color:rgba(245,237,216,0.6)">${div}</td>`;
+          mt.data.ps.forEach(p=>{const q=p.qs[i];html+=`<td class="${q.win?'ww':''}">${q.v.toLocaleString('es-CO')}</td>`;});
+          html+='</tr>';
+        });
+        html+='</tbody></table></div>';
+      } else if(mt&&mt.type==='hare'){
+        html+=`<div style="font-family:'Rajdhani',sans-serif;font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(245,237,216,0.35);margin:4px 0 2px">Cuota de Hare = ${mt.data.cuota} votos/esc.</div>
+          <div class="mt-wrap"><table class="mt">
+            <thead><tr><th>Partido</th><th>Votos</th><th>Cociente</th><th>Ent.</th><th>Resto</th><th>Bonus</th><th>Esc.</th></tr></thead><tbody>`;
+        mt.data.ps.forEach(p=>{
+          html+=`<tr><td class="pc" style="color:${p.color}">${p.sigla}</td>
+            <td>${p.vots?.toLocaleString('es-CO')}</td>
+            <td>${(p.ex||0).toFixed(2)}</td>
+            <td>${p.escanios-(p.bonus?1:0)}</td>
+            <td>${(p.resto||0).toFixed(3)}</td>
+            <td>${p.bonus?'✓':'—'}</td>
+            <td class="${p.escanios>0?'ww':''}">${p.escanios}</td></tr>`;
+        });
+        html+='</tbody></table></div>';
+      }
+    }
+
+    // Excluidos por umbral
+    if(umbral>0&&excl.filter(p=>p.vots>0).length>0){
+      html+=`<div style="font-size:0.65rem;color:#e88;font-style:italic;margin-top:4px">⚠️ Excluidos (${umbral}%): ${excl.filter(p=>p.vots>0).map(p=>p.sigla).join(', ')}</div>`;
+    }
+
+    html+=`</div>`; // end circ-section
+  });
+
+  // Nota pedagógica
+  if(tiposMix.length>1){
+    html+=`<div class="nota">📚 <strong>Sistema mixto:</strong> Esta elección combina circunscripciones uninominales (mayoritario · candidato personal) con plurinominales (listas · fórmula proporcional). Es el principio del sistema alemán personalizado, el japonés paralelo o el colombiano con circunscripciones especiales.</div>`;
+  } else {
+    const tv=document.querySelector('input[name="tv"]:checked')?.value||'facultativo';
+    const tvNota={facultativo:'',obligatorio:'El voto obligatorio puede aumentar la participación entre 10 y 15 puntos porcentuales.',electronico:'El voto electrónico facilita el acceso pero genera debates sobre auditoría y confianza institucional.',fisico:''};
+    if(tvNota[tv]) html+=`<div class="nota">📚 ${tvNota[tv]}</div>`;
+  }
+
+  rc.innerHTML=html;
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{ updateAll(); });
+</script>
+</body>
+</html>
